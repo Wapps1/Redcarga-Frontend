@@ -39,4 +39,86 @@
     <string name="error_network">Connection error. Check your internet.</string>
     <string name="error_server">Server error. Try again later.</string>
     <string name="error_unknown">An unexpected error occurred.</string>
+
+    <!-- Choose Account Type -->
+    <string name="choose_account_title">How do you want to use Red Carga?</string>
+    <string name="account_type_client">I\'M A CLIENT</string>
+    <string name="account_type_client_desc">I need to transport cargo</string>
+    <string name="account_type_provider">I\'M A PROVIDER</string>
+    <string name="account_type_provider_desc">I offer transportation services</string>
+
+    <!-- Sign In -->
+    <string name="signin_email_or_phone">Email or Phone</string>
+    <string name="signin_password">PIN or Password</string>
+    <string name="signin_button">Sign In</string>
+    <string name="signin_register_link">Don\'t have an account? Sign up</string>
+
+    <!-- Verify 2FA -->
+    <string name="verify_2fa_title">Security verification</string>
+    <string name="verify_2fa_subtitle">Enter the 6-digit code sent to your phone</string>
+    <string name="verify_2fa_code_label">Verification code</string>
+    <string name="verify_2fa_verify_button">Verify</string>
+    <string name="verify_2fa_resend">Resend code</string>
+    <string name="verify_2fa_resend_in">Resend in %1$s</string>
+    <string name="verify_2fa_didnt_receive">Didn\'t receive the code?</string>
+
+    <!-- Forgot Password -->
+    <string name="forgot_password_title">Reset password</string>
+    <string name="forgot_password_subtitle">Enter your email or phone to recover your account</string>
+    <string name="forgot_password_email_label">Email or Phone</string>
+    <string name="forgot_password_send_code">Send code</string>
+    <string name="forgot_password_code_sent">Code sent to %1$s</string>
+    <string name="forgot_password_enter_code">Enter verification code</string>
+    <string name="forgot_password_new_password">New password</string>
+    <string name="forgot_password_confirm_new_password">Confirm new password</string>
+    <string name="forgot_password_reset_button">Reset password</string>
+    <string name="forgot_password_success">Password reset successfully</string>
+
+    <!-- Sign Up Client -->
+    <string name="signup_client_title">Client Registration</string>
+    <string name="signup_client_step1_title">Identity Information</string>
+    <string name="signup_client_step1_subtitle">Verify your identity with your ID</string>
+    <string name="signup_client_dni_label">ID Number</string>
+    <string name="signup_client_full_name_label">Full Name</string>
+    <string name="signup_client_step2_title">Contact Information</string>
+    <string name="signup_client_step2_subtitle">How can we contact you?</string>
+    <string name="signup_client_phone_label">Phone</string>
+    <string name="signup_client_email_label">Email</string>
+    <string name="signup_client_step3_title">Additional Information</string>
+    <string name="signup_client_step3_subtitle">Complete your profile</string>
+    <string name="signup_client_age_label">Age</string>
+    <string name="signup_client_ruc_label">Tax ID (Optional)</string>
+    <string name="signup_client_step4_title">Create your Security PIN</string>
+    <string name="signup_client_step4_subtitle">Create a 6-digit PIN</string>
+    <string name="signup_client_pin_label">PIN</string>
+    <string name="signup_client_confirm_pin_label">Confirm PIN</string>
+    <string name="signup_client_step5_title">Phone Verification</string>
+    <string name="signup_client_step5_subtitle">Verify your phone number</string>
+
+    <!-- Sign Up Provider -->
+    <string name="signup_provider_title">Provider Registration</string>
+    <string name="signup_provider_step1_title">Company Information</string>
+    <string name="signup_provider_step1_subtitle">Your company\'s tax information</string>
+    <string name="signup_provider_ruc_label">Tax ID</string>
+    <string name="signup_provider_business_name_label">Business Name</string>
+    <string name="signup_provider_step2_title">Legal Representative</string>
+    <string name="signup_provider_step2_subtitle">Representative information</string>
+    <string name="signup_provider_legal_dni_label">Representative ID</string>
+    <string name="signup_provider_legal_name_label">Representative Name</string>
+    <string name="signup_provider_step3_title">Contact Information</string>
+    <string name="signup_provider_step3_subtitle">Company contact details</string>
+    <string name="signup_provider_phone_label">Phone</string>
+    <string name="signup_provider_email_label">Email</string>
+    <string name="signup_provider_address_label">Address</string>
+    <string name="signup_provider_step4_title">Create your Security PIN</string>
+    <string name="signup_provider_step4_subtitle">Create a 6-digit PIN</string>
+    <string name="signup_provider_pin_label">PIN</string>
+    <string name="signup_provider_confirm_pin_label">Confirm PIN</string>
+    <string name="signup_provider_step5_title">Phone Verification</string>
+    <string name="signup_provider_step5_subtitle">Verify your phone number</string>
+
+    <!-- Common -->
+    <string name="signup_step_of">Step %1$d of %2$d</string>
+    <string name="signup_next_button">Next</string>
+    <string name="signup_finish_button">Finish</string>
 </resources>

@@ -6,20 +6,15 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import com.wapps1.redcarga.core.navigation.NavGraph
 import com.wapps1.redcarga.core.navigation.Route
+import com.wapps1.redcarga.features.auth.presentation.views.ChooseAccountType
+import com.wapps1.redcarga.features.auth.presentation.views.ForgotPassword
+import com.wapps1.redcarga.features.auth.presentation.views.SignIn
+import com.wapps1.redcarga.features.auth.presentation.views.SignUpClient
+import com.wapps1.redcarga.features.auth.presentation.views.SignUpProvider
+import com.wapps1.redcarga.features.auth.presentation.views.Verify2FA
 import com.wapps1.redcarga.features.auth.presentation.views.Welcome
 
-/**
- * Grafo de navegación para flujo de autenticación
- * 
- * Contiene todas las pantallas públicas que no requieren autenticación:
- * - Welcome: Pantalla inicial de bienvenida
- * - SignIn: Inicio de sesión
- * - SignUp: Registro de nueva cuenta
- * - ForgotPassword: Recuperación de contraseña
- * 
- * @param navController Controlador de navegación
- * @param onNavigateToMain Callback para navegar al grafo principal tras login exitoso
- */
+
 fun NavGraphBuilder.authNavGraph(
     navController: NavHostController,
     onNavigateToMain: () -> Unit
@@ -28,36 +23,64 @@ fun NavGraphBuilder.authNavGraph(
         startDestination = Route.Welcome.route,
         route = NavGraph.Auth.route
     ) {
-        // Pantalla de Bienvenida
         composable(route = Route.Welcome.route) {
             Welcome(
                 onCreateAccount = {
-                    navController.navigate(Route.SignUp.route)
+                    navController.navigate(Route.ChooseAccountType.route)
                 },
                 onLogin = {
                     navController.navigate(Route.SignIn.route)
                 }
             )
         }
-        
-        // Pantalla de Inicio de Sesión
-        composable(route = Route.SignIn.route) {
-            // TODO: Implementar SignInScreen
-            // SignInScreen(
-            //     onSignInSuccess = onNavigateToMain,
-            //     onNavigateToSignUp = {
-            //         navController.navigate(Route.SignUp.route)
-            //     },
-            //     onNavigateToForgotPassword = {
-            //         navController.navigate(Route.ForgotPassword.route)
-            //     },
-            //     onBackClick = {
-            //         navController.popBackStack()
-            //     }
-            // )
+
+        composable(route = Route.ChooseAccountType.route) {
+            ChooseAccountType(
+                onClientSelected = {
+                    navController.navigate("sign_up_client")
+                },
+                onProviderSelected = {
+                    navController.navigate("sign_up_provider")
+                },
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
         }
         
-        // Pantalla de Registro
+        composable(route = "sign_up_client") {
+            SignUpClient(
+                onSignUpSuccess = onNavigateToMain,
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
+        
+        composable(route = "sign_up_provider") {
+            SignUpProvider(
+                onSignUpSuccess = onNavigateToMain,
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(route = Route.SignIn.route) {
+            SignIn(
+                onSignInSuccess = onNavigateToMain,
+                onForgotPasswordClick = {
+                    navController.navigate(Route.ForgotPassword.route)
+                },
+                onRegisterClick = {
+                    navController.navigate(Route.ChooseAccountType.route)
+                },
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
         composable(route = Route.SignUp.route) {
             // TODO: Implementar SignUpScreen
             // SignUpScreen(
@@ -70,18 +93,16 @@ fun NavGraphBuilder.authNavGraph(
             //     }
             // )
         }
-        
-        // Pantalla de Recuperación de Contraseña
+
         composable(route = Route.ForgotPassword.route) {
-            // TODO: Implementar ForgotPasswordScreen
-            // ForgotPasswordScreen(
-            //     onPasswordResetSent = {
-            //         navController.popBackStack()
-            //     },
-            //     onBackClick = {
-            //         navController.popBackStack()
-            //     }
-            // )
+            ForgotPassword(
+                onPasswordResetSuccess = {
+                    navController.popBackStack()
+                },
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
         }
     }
 }

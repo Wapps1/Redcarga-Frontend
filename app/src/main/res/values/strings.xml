@@ -39,4 +39,85 @@
     <string name="error_network">Error de conexión. Verifica tu internet.</string>
     <string name="error_server">Error del servidor. Intenta más tarde.</string>
     <string name="error_unknown">Ocurrió un error inesperado.</string>
+
+    <string name="choose_account_title">¿Cómo deseas usar Red Carga?</string>
+    <string name="account_type_client">SOY CLIENTE</string>
+    <string name="account_type_client_desc">Necesito transportar carga</string>
+    <string name="account_type_provider">SOY PROVEEDOR</string>
+    <string name="account_type_provider_desc">Ofrezco servicios de transporte</string>
+
+    <!-- Sign In -->
+    <string name="signin_email_or_phone">Email o Teléfono</string>
+    <string name="signin_password">PIN o Contraseña</string>
+    <string name="signin_button">Iniciar Sesión</string>
+    <string name="signin_register_link">¿No tienes cuenta? Regístrate</string>
+
+    <!-- Verify 2FA -->
+    <string name="verify_2fa_title">Verificación de seguridad</string>
+    <string name="verify_2fa_subtitle">Ingresa el código de 6 dígitos enviado a tu teléfono</string>
+    <string name="verify_2fa_code_label">Código de verificación</string>
+    <string name="verify_2fa_verify_button">Verificar</string>
+    <string name="verify_2fa_resend">Reenviar código</string>
+    <string name="verify_2fa_resend_in">Reenviar en %1$s</string>
+    <string name="verify_2fa_didnt_receive">¿No recibiste el código?</string>
+
+    <!-- Forgot Password -->
+    <string name="forgot_password_title">Recuperar contraseña</string>
+    <string name="forgot_password_subtitle">Ingresa tu email o teléfono para recuperar tu cuenta</string>
+    <string name="forgot_password_email_label">Email o Teléfono</string>
+    <string name="forgot_password_send_code">Enviar código</string>
+    <string name="forgot_password_code_sent">Código enviado a %1$s</string>
+    <string name="forgot_password_enter_code">Ingresa el código de verificación</string>
+    <string name="forgot_password_new_password">Nueva contraseña</string>
+    <string name="forgot_password_confirm_new_password">Confirmar nueva contraseña</string>
+    <string name="forgot_password_reset_button">Restablecer contraseña</string>
+    <string name="forgot_password_success">Contraseña restablecida exitosamente</string>
+
+    <!-- Sign Up Client -->
+    <string name="signup_client_title">Registro de Cliente</string>
+    <string name="signup_client_step1_title">Información de Identidad</string>
+    <string name="signup_client_step1_subtitle">Verifica tu identidad con tu DNI</string>
+    <string name="signup_client_dni_label">DNI</string>
+    <string name="signup_client_full_name_label">Nombre Completo</string>
+    <string name="signup_client_step2_title">Información de Contacto</string>
+    <string name="signup_client_step2_subtitle">¿Cómo podemos contactarte?</string>
+    <string name="signup_client_phone_label">Teléfono</string>
+    <string name="signup_client_email_label">Correo Electrónico</string>
+    <string name="signup_client_step3_title">Información Adicional</string>
+    <string name="signup_client_step3_subtitle">Completa tu perfil</string>
+    <string name="signup_client_age_label">Edad</string>
+    <string name="signup_client_ruc_label">RUC (Opcional)</string>
+    <string name="signup_client_step4_title">Crea tu PIN de Seguridad</string>
+    <string name="signup_client_step4_subtitle">Crea un PIN de 6 dígitos</string>
+    <string name="signup_client_pin_label">PIN</string>
+    <string name="signup_client_confirm_pin_label">Confirmar PIN</string>
+    <string name="signup_client_step5_title">Verificación de Teléfono</string>
+    <string name="signup_client_step5_subtitle">Verifica tu número de teléfono</string>
+
+    <!-- Sign Up Provider -->
+    <string name="signup_provider_title">Registro de Proveedor</string>
+    <string name="signup_provider_step1_title">Información de Empresa</string>
+    <string name="signup_provider_step1_subtitle">Datos fiscales de tu empresa</string>
+    <string name="signup_provider_ruc_label">RUC</string>
+    <string name="signup_provider_business_name_label">Razón Social</string>
+    <string name="signup_provider_step2_title">Representante Legal</string>
+    <string name="signup_provider_step2_subtitle">Información del representante</string>
+    <string name="signup_provider_legal_dni_label">DNI del Representante</string>
+    <string name="signup_provider_legal_name_label">Nombre del Representante</string>
+    <string name="signup_provider_step3_title">Información de Contacto</string>
+    <string name="signup_provider_step3_subtitle">Datos de contacto de la empresa</string>
+    <string name="signup_provider_phone_label">Teléfono</string>
+    <string name="signup_provider_email_label">Correo Electrónico</string>
+    <string name="signup_provider_address_label">Dirección</string>
+    <string name="signup_provider_step4_title">Crea tu PIN de Seguridad</string>
+    <string name="signup_provider_step4_subtitle">Crea un PIN de 6 dígitos</string>
+    <string name="signup_provider_pin_label">PIN</string>
+    <string name="signup_provider_confirm_pin_label">Confirmar PIN</string>
+    <string name="signup_provider_step5_title">Verificación de Teléfono</string>
+    <string name="signup_provider_step5_subtitle">Verifica tu número de teléfono</string>
+
+    <!-- Common -->
+    <string name="signup_step_of">Paso %1$d de %2$d</string>
+    <string name="signup_next_button">Siguiente</string>
+    <string name="signup_finish_button">Finalizar</string>
 </resources>
