@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Red Carga</string>
+
+    <string name="welcome_greeting">Bienvenido a</string>
+    <string name="welcome_app_name">Red Carga</string>
+    <string name="welcome_btn_create_account">Crear Cuenta</string>
+    <string name="welcome_btn_login">Iniciar Sesión</string>
+
+    <string name="common_continue">Continuar</string>
+    <string name="common_cancel">Cancelar</string>
+    <string name="common_accept">Aceptar</string>
+    <string name="common_back">Atrás</string>
+    <string name="common_save">Guardar</string>
+    <string name="common_delete">Eliminar</string>
+    <string name="common_edit">Editar</string>
+    <string name="common_search">Buscar</string>
+    <string name="common_loading">Cargando…</string>
+    <string name="common_error">Error</string>
+    <string name="common_success">Éxito</string>
+    <string name="common_yes">Sí</string>
+    <string name="common_no">No</string>
+
+    <string name="validation_required_field">Este campo es obligatorio</string>
+    <string name="validation_invalid_email">Correo electrónico inválido</string>
+    <string name="validation_invalid_phone">Número de teléfono inválido</string>
+    <string name="validation_password_too_short">La contraseña debe tener al menos %1$d caracteres</string>
+    <string name="validation_passwords_dont_match">Las contraseñas no coinciden</string>
+
+    <string name="auth_login_title">Iniciar Sesión</string>
+    <string name="auth_signup_title">Crear Cuenta</string>
+    <string name="auth_email">Correo electrónico</string>
+    <string name="auth_password">Contraseña</string>
+    <string name="auth_confirm_password">Confirmar contraseña</string>
+    <string name="auth_forgot_password">¿Olvidaste tu contraseña?</string>
+    <string name="auth_dont_have_account">¿No tienes cuenta?</string>
+    <string name="auth_already_have_account">¿Ya tienes cuenta?</string>
+
+    <string name="error_network">Error de conexión. Verifica tu internet.</string>
+    <string name="error_server">Error del servidor. Intenta más tarde.</string>
+    <string name="error_unknown">Ocurrió un error inesperado.</string>
+</resources>
