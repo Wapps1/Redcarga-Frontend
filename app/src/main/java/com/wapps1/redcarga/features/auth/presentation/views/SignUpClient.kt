@@ -6,14 +6,18 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Badge
+import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -21,27 +25,37 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import android.content.Intent
+import android.net.Uri
 import com.wapps1.redcarga.R
 import com.wapps1.redcarga.core.ui.components.*
+import com.wapps1.redcarga.core.ui.theme.RcColor5
 import com.wapps1.redcarga.core.ui.theme.RcColor6
 import com.wapps1.redcarga.core.ui.theme.RedcargaTheme
+import com.wapps1.redcarga.features.auth.presentation.viewmodels.SignUpClientViewModel
 
 @Composable
 fun SignUpClient(
-    onSignUpSuccess: () -> Unit,
+    onNavigateToMain: () -> Unit,
     onBackClick: () -> Unit
 ) {
-    var currentStep by remember { mutableStateOf(1) }
-    var dni by remember { mutableStateOf("") }
-    var fullName by remember { mutableStateOf("") }
-    var phone by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
-    var age by remember { mutableStateOf("") }
-    var ruc by remember { mutableStateOf("") }
-    var pin by remember { mutableStateOf("") }
-    var confirmPin by remember { mutableStateOf("") }
-    var verificationCode by remember { mutableStateOf("") }
-    var isLoading by remember { mutableStateOf(false) }
+    val vm: SignUpClientViewModel = hiltViewModel()
+    val ui by vm.ui.collectAsState()
+    val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        vm.effect.collect { eff ->
+            when (eff) {
+                is SignUpClientViewModel.Effect.OpenUrl -> {
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(eff.url))
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    context.startActivity(intent)
+                }
+                SignUpClientViewModel.Effect.NavigateToMain -> onNavigateToMain()
+            }
+        }
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         RcBackground(Modifier.matchParentSize())
@@ -60,8 +74,7 @@ fun SignUpClient(
             ) {
                 RcBackButton(
                     onClick = {
-                        if (currentStep == 1) onBackClick()
-                        else currentStep--
+                        if (ui.step == 1) onBackClick() else vm.onBack()
                     },
                     modifier = Modifier.align(Alignment.CenterStart)
                 )
@@ -71,8 +84,8 @@ fun SignUpClient(
 
             // Step Indicator
             RcStepIndicator(
-                currentStep = currentStep,
-                totalSteps = 5,
+                currentStep = ui.step,
+                totalSteps = 3,
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -94,12 +107,38 @@ fun SignUpClient(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                when (currentStep) {
-                    1 -> Step1Identity(dni, { dni = it }, fullName, { fullName = it })
-                    2 -> Step2Contact(phone, { phone = it }, email, { email = it })
-                    3 -> Step3Additional(age, { age = it }, ruc, { ruc = it })
-                    4 -> Step4PIN(pin, { pin = it }, confirmPin, { confirmPin = it })
-                    5 -> Step5Verification(phone, verificationCode, { verificationCode = it })
+                when (ui.step) {
+                    1 -> Step1Credentials(
+                        email = ui.email,
+                        onEmailChange = { vm.updateEmail(it) },
+                        username = ui.username,
+                        onUsernameChange = { vm.updateUsername(it) },
+                        password = ui.password,
+                        onPasswordChange = { vm.updatePassword(it) },
+                        confirmPassword = ui.confirmPassword,
+                        onConfirmPasswordChange = { vm.updateConfirmPassword(it) }
+                    )
+                    2 -> Step2EmailVerification(
+                        email = ui.email,
+                        verificationLink = ui.verificationLink,
+                        emailVerified = ui.emailVerified,
+                        onOpenLink = { vm.onOpenVerificationLink() },
+                        onConfirmVerified = { vm.onConfirmEmailVerified() }
+                    )
+                    3 -> Step3PersonalData(
+                        fullName = ui.fullName,
+                        onFullNameChange = { vm.updateFullName(it) },
+                        phone = ui.phone,
+                        onPhoneChange = { vm.updatePhone(it) },
+                        birthDate = ui.birthDate,
+                        onBirthDateChange = { vm.updateBirthDate(it) },
+                        documentType = ui.documentType,
+                        onDocumentTypeChange = { vm.updateDocumentType(it) },
+                        documentNumber = ui.documentNumber,
+                        onDocumentNumberChange = { vm.updateDocumentNumber(it) },
+                        ruc = ui.ruc,
+                        onRucChange = { vm.updateRuc(it) }
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(32.dp))
@@ -107,38 +146,74 @@ fun SignUpClient(
 
             // Botón
             RcButton(
-                text = if (currentStep == 5) 
-                    stringResource(R.string.signup_finish_button) 
-                else 
-                    stringResource(R.string.signup_next_button),
+                text = when (ui.step) {
+                    1 -> stringResource(R.string.signup_register_button)
+                    2 -> if (ui.emailVerified) stringResource(R.string.signup_continue_button) else stringResource(R.string.signup_verify_email_button)
+                    3 -> stringResource(R.string.signup_finish_button)
+                    else -> stringResource(R.string.signup_next_button)
+                },
                 onClick = {
-                    if (currentStep == 5) {
-                        isLoading = true
-                        onSignUpSuccess()
-                    } else {
-                        currentStep++
+                    when (ui.step) {
+                        1 -> {
+                            vm.onRegisterStart()
+                        }
+                        2 -> {
+                            if (!ui.emailVerified) vm.onOpenVerificationLink() else vm.onConfirmEmailVerified()
+                        }
+                        3 -> {
+                            vm.onCreatePersonAndLogin()
+                        }
                     }
                 },
-                loading = isLoading,
-                enabled = when (currentStep) {
-                    1 -> dni.length == 8 && fullName.isNotEmpty()
-                    2 -> phone.length == 9 && email.isNotEmpty()
-                    3 -> age.isNotEmpty()
-                    4 -> pin.length == 6 && pin == confirmPin
-                    5 -> verificationCode.length == 6
+                loading = ui.loading,
+                enabled = when (ui.step) {
+                    1 -> {
+                        ui.email.isNotEmpty() &&
+                                ui.username.isNotEmpty() &&
+                                ui.password.length >= 8 &&
+                                ui.password == ui.confirmPassword &&
+                                android.util.Patterns.EMAIL_ADDRESS.matcher(ui.email).matches()
+                    }
+                    2 -> true
+                    3 -> {
+                        ui.fullName.isNotEmpty() &&
+                                ui.phone.length == 9 &&
+                                ui.birthDate.length == 10 &&
+                                ui.documentType.isNotEmpty() &&
+                                ui.documentNumber.isNotEmpty() &&
+                                ui.ruc.isNotEmpty()
+                    }
                     else -> false
                 }
             )
+
+            // Feedback de error
+            if (ui.error != null) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = ui.error ?: "",
+                    color = androidx.compose.ui.graphics.Color.Red,
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp)
+                )
+            }
         }
     }
 }
 
 @Composable
-private fun Step1Identity(
-    dni: String,
-    onDniChange: (String) -> Unit,
-    fullName: String,
-    onFullNameChange: (String) -> Unit
+private fun Step1Credentials(
+    email: String,
+    onEmailChange: (String) -> Unit,
+    username: String,
+    onUsernameChange: (String) -> Unit,
+    password: String,
+    onPasswordChange: (String) -> Unit,
+    confirmPassword: String,
+    onConfirmPasswordChange: (String) -> Unit
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
@@ -158,31 +233,62 @@ private fun Step1Identity(
         Spacer(modifier = Modifier.height(32.dp))
 
         RcTextField(
-            value = dni,
-            onValueChange = { if (it.length <= 8 && it.all { c -> c.isDigit() }) onDniChange(it) },
-            label = stringResource(R.string.signup_client_dni_label),
-            leadingIcon = Icons.Default.Badge,
-            keyboardType = KeyboardType.Number,
+            value = email,
+            onValueChange = onEmailChange,
+            label = stringResource(R.string.signup_client_email_label),
+            leadingIcon = Icons.Default.Email,
+            keyboardType = KeyboardType.Email,
             modifier = Modifier.fillMaxWidth()
         )
+
         Spacer(modifier = Modifier.height(16.dp))
+
         RcTextField(
-            value = fullName,
-            onValueChange = onFullNameChange,
-            label = stringResource(R.string.signup_client_full_name_label),
+            value = username,
+            onValueChange = onUsernameChange,
+            label = stringResource(R.string.signup_client_username_label),
             leadingIcon = Icons.Default.Person,
             keyboardType = KeyboardType.Text,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        RcTextField(
+            value = password,
+            onValueChange = onPasswordChange,
+            label = stringResource(R.string.signup_client_password_label),
+            leadingIcon = Icons.Default.Lock,
+            isPassword = true,
+            keyboardType = KeyboardType.Password,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        RcTextField(
+            value = confirmPassword,
+            onValueChange = onConfirmPasswordChange,
+            label = stringResource(R.string.signup_client_confirm_password_label),
+            leadingIcon = Icons.Default.Lock,
+            isPassword = true,
+            keyboardType = KeyboardType.Password,
+            isError = confirmPassword.isNotEmpty() && password != confirmPassword,
+            errorMessage = if (confirmPassword.isNotEmpty() && password != confirmPassword)
+                stringResource(R.string.validation_passwords_dont_match)
+            else null,
             modifier = Modifier.fillMaxWidth()
         )
     }
 }
 
 @Composable
-private fun Step2Contact(
-    phone: String,
-    onPhoneChange: (String) -> Unit,
+private fun Step2EmailVerification(
     email: String,
-    onEmailChange: (String) -> Unit
+    verificationLink: String,
+    emailVerified: Boolean,
+    onOpenLink: () -> Unit,
+    onConfirmVerified: () -> Unit
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
@@ -199,35 +305,75 @@ private fun Step2Contact(
             color = RcColor6.copy(alpha = 0.7f),
             textAlign = TextAlign.Center
         )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Text(
+            text = email,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Bold,
+            color = RcColor5,
+            textAlign = TextAlign.Center
+        )
+
         Spacer(modifier = Modifier.height(32.dp))
 
-        RcTextField(
-            value = phone,
-            onValueChange = { if (it.length <= 9 && it.all { c -> c.isDigit() }) onPhoneChange(it) },
-            label = stringResource(R.string.signup_client_phone_label),
-            leadingIcon = Icons.Default.Phone,
-            keyboardType = KeyboardType.Phone,
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        RcTextField(
-            value = email,
-            onValueChange = onEmailChange,
-            label = stringResource(R.string.signup_client_email_label),
-            leadingIcon = Icons.Default.Email,
-            keyboardType = KeyboardType.Email,
-            modifier = Modifier.fillMaxWidth()
-        )
+        if (emailVerified) {
+            // Email verificado - mostrar éxito
+            Text(
+                text = stringResource(R.string.signup_client_email_verified),
+                style = MaterialTheme.typography.bodyLarge,
+                color = RcColor5,
+                textAlign = TextAlign.Center
+            )
+        } else {
+            // Abrir enlace de verificación
+            TextButton(onClick = onOpenLink) {
+                Text(
+                    text = stringResource(R.string.signup_client_verify_email_button),
+                    color = RcColor5,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Confirmar que ya se verificó el correo
+            TextButton(onClick = onConfirmVerified) {
+                Text(
+                    text = stringResource(R.string.signup_continue_button),
+                    color = RcColor5,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+        }
     }
 }
 
 @Composable
-private fun Step3Additional(
-    age: String,
-    onAgeChange: (String) -> Unit,
+private fun Step3PersonalData(
+    fullName: String,
+    onFullNameChange: (String) -> Unit,
+    phone: String,
+    onPhoneChange: (String) -> Unit,
+    birthDate: String,
+    onBirthDateChange: (String) -> Unit,
+    documentType: String,
+    onDocumentTypeChange: (String) -> Unit,
+    documentNumber: String,
+    onDocumentNumberChange: (String) -> Unit,
     ruc: String,
     onRucChange: (String) -> Unit
 ) {
+    val documentTypes = listOf(
+        stringResource(R.string.document_type_dni),
+        stringResource(R.string.document_type_passport),
+        stringResource(R.string.document_type_ce),
+        stringResource(R.string.document_type_ruc)
+    )
+
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
             text = stringResource(R.string.signup_client_step3_title),
@@ -246,100 +392,72 @@ private fun Step3Additional(
         Spacer(modifier = Modifier.height(32.dp))
 
         RcTextField(
-            value = age,
-            onValueChange = { if (it.length <= 3 && it.all { c -> c.isDigit() }) onAgeChange(it) },
-            label = stringResource(R.string.signup_client_age_label),
-            keyboardType = KeyboardType.Number,
+            value = fullName,
+            onValueChange = onFullNameChange,
+            label = stringResource(R.string.signup_client_full_name_label),
+            leadingIcon = Icons.Default.Person,
+            keyboardType = KeyboardType.Text,
             modifier = Modifier.fillMaxWidth()
         )
+
         Spacer(modifier = Modifier.height(16.dp))
+
+        RcTextField(
+            value = phone,
+            onValueChange = { if (it.length <= 9 && it.all { c -> c.isDigit() }) onPhoneChange(it) },
+            label = stringResource(R.string.signup_client_phone_label),
+            leadingIcon = Icons.Default.Phone,
+            keyboardType = KeyboardType.Phone,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        RcDatePickerField(
+            value = birthDate,
+            onValueChange = onBirthDateChange,
+            label = stringResource(R.string.signup_client_birth_date_label),
+            leadingIcon = Icons.Default.CalendarToday,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        RcDropdown(
+            value = documentType,
+            onValueChange = onDocumentTypeChange,
+            label = stringResource(R.string.signup_client_document_type_label),
+            options = documentTypes,
+            leadingIcon = Icons.Default.Badge,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        RcTextField(
+            value = documentNumber,
+            onValueChange = {
+                // Limit based on document type
+                val maxLength = when (documentType) {
+                    documentTypes[0] -> 8  // DNI
+                    documentTypes[3] -> 11 // RUC
+                    else -> 20 // Passport, CE
+                }
+                if (it.length <= maxLength) onDocumentNumberChange(it)
+            },
+            label = stringResource(R.string.signup_client_document_number_label),
+            keyboardType = KeyboardType.Text,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
         RcTextField(
             value = ruc,
-            onValueChange = { if (it.length <= 11) onRucChange(it) },
+            onValueChange = { if (it.length <= 11 && it.all { c -> c.isDigit() }) onRucChange(it) },
             label = stringResource(R.string.signup_client_ruc_label),
             keyboardType = KeyboardType.Number,
             modifier = Modifier.fillMaxWidth()
-        )
-    }
-}
-
-@Composable
-private fun Step4PIN(
-    pin: String,
-    onPinChange: (String) -> Unit,
-    confirmPin: String,
-    onConfirmPinChange: (String) -> Unit
-) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(
-            text = stringResource(R.string.signup_client_step4_title),
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            color = RcColor6,
-            textAlign = TextAlign.Center
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = stringResource(R.string.signup_client_step4_subtitle),
-            style = MaterialTheme.typography.bodyLarge,
-            color = RcColor6.copy(alpha = 0.7f),
-            textAlign = TextAlign.Center
-        )
-        Spacer(modifier = Modifier.height(32.dp))
-
-        RcOTPInput(
-            value = pin,
-            onValueChange = onPinChange,
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(modifier = Modifier.height(24.dp))
-        RcOTPInput(
-            value = confirmPin,
-            onValueChange = onConfirmPinChange,
-            modifier = Modifier.fillMaxWidth(),
-            isError = confirmPin.isNotEmpty() && pin != confirmPin
-        )
-    }
-}
-
-@Composable
-private fun Step5Verification(
-    phone: String,
-    code: String,
-    onCodeChange: (String) -> Unit
-) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(
-            text = stringResource(R.string.signup_client_step5_title),
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            color = RcColor6,
-            textAlign = TextAlign.Center
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = stringResource(R.string.signup_client_step5_subtitle),
-            style = MaterialTheme.typography.bodyLarge,
-            color = RcColor6.copy(alpha = 0.7f),
-            textAlign = TextAlign.Center
-        )
-        Spacer(modifier = Modifier.height(32.dp))
-
-        RcOTPInput(
-            value = code,
-            onValueChange = onCodeChange,
-            modifier = Modifier.fillMaxWidth()
-        )
-    }
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-private fun SignUpClientPreview() {
-    RedcargaTheme(darkTheme = false) {
-        SignUpClient(
-            onSignUpSuccess = {},
-            onBackClick = {}
         )
     }
 }

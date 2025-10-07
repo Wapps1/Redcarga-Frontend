@@ -22,6 +22,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.wapps1.redcarga.R
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.wapps1.redcarga.features.auth.presentation.viewmodels.SignInViewModel
 import com.wapps1.redcarga.core.ui.components.RcBackButton
 import com.wapps1.redcarga.core.ui.components.RcBackground
 import com.wapps1.redcarga.core.ui.components.RcButton
@@ -32,14 +34,20 @@ import com.wapps1.redcarga.core.ui.theme.RedcargaTheme
 
 @Composable
 fun SignIn(
-    onSignInSuccess: () -> Unit,
-    onForgotPasswordClick: () -> Unit,
+    onNavigateToMain: () -> Unit,
     onRegisterClick: () -> Unit,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    vm: SignInViewModel = hiltViewModel()
 ) {
-    var emailOrPhone by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var isLoading by remember { mutableStateOf(false) }
+    val ui by vm.ui.collectAsState()
+
+    LaunchedEffect(Unit) {
+        vm.effect.collect { eff ->
+            when (eff) {
+                SignInViewModel.Effect.NavigateToMain -> onNavigateToMain()
+            }
+        }
+    }
     
     Box(modifier = Modifier.fillMaxSize()) {
         // Fondo con blur
@@ -80,20 +88,20 @@ fun SignIn(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Campo Email/Teléfono
+            // Campo Email
             RcTextField(
-                value = emailOrPhone,
-                onValueChange = { emailOrPhone = it },
-                label = stringResource(R.string.signin_email_or_phone),
+                value = ui.email,
+                onValueChange = { vm.updateEmail(it) },
+                label = stringResource(R.string.auth_email),
                 leadingIcon = Icons.Default.Email,
                 keyboardType = KeyboardType.Email,
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // Campo Password/PIN
+            // Campo Password
             RcTextField(
-                value = password,
-                onValueChange = { password = it },
+                value = ui.password,
+                onValueChange = { vm.updatePassword(it) },
                 label = stringResource(R.string.signin_password),
                 leadingIcon = Icons.Default.Lock,
                 isPassword = true,
@@ -101,29 +109,16 @@ fun SignIn(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // Link "Olvidé contraseña"
-            Text(
-                text = stringResource(R.string.auth_forgot_password),
-                style = MaterialTheme.typography.bodyMedium,
-                color = RcColor5,
-                modifier = Modifier
-                    .clickable(onClick = onForgotPasswordClick)
-                    .padding(8.dp)
-            )
-
             Spacer(modifier = Modifier.height(8.dp))
 
             // Botón Iniciar Sesión
             RcButton(
                 text = stringResource(R.string.signin_button),
-                onClick = {
-                    isLoading = true
-                    // TODO: Implementar lógica de login
-                    // Por ahora, simular éxito
-                    onSignInSuccess()
-                },
-                loading = isLoading,
-                enabled = emailOrPhone.isNotEmpty() && password.isNotEmpty()
+                onClick = { vm.onSignIn() },
+                loading = ui.loading,
+                enabled = ui.email.isNotEmpty() && 
+                         ui.password.isNotEmpty() && 
+                         android.util.Patterns.EMAIL_ADDRESS.matcher(ui.email).matches()
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -162,18 +157,5 @@ fun SignIn(
                     .padding(8.dp)
             )
         }
-    }
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-private fun SignInPreview() {
-    RedcargaTheme(darkTheme = false) {
-        SignIn(
-            onSignInSuccess = {},
-            onForgotPasswordClick = {},
-            onRegisterClick = {},
-            onBackClick = {}
-        )
     }
 }

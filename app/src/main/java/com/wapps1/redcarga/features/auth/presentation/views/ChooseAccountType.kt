@@ -157,15 +157,3 @@ private fun AccountTypeCard(
         }
     }
 }
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-private fun ChooseAccountTypePreview() {
-    RedcargaTheme(darkTheme = false) {
-        ChooseAccountType(
-            onClientSelected = {},
-            onProviderSelected = {},
-            onBackClick = {}
-        )
-    }
-}
