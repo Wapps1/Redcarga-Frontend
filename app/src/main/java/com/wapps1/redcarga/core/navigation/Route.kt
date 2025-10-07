@@ -13,17 +13,39 @@ sealed class Route(val route: String) {
 
     data object SignIn : Route("sign_in")
 
-    data object SignUp : Route("sign_up")
+    data object SignUpClient : Route("sign_up_client")
+    
+    data object SignUpProvider : Route("sign_up_provider")
 
-    data object ForgotPassword : Route("forgot_password")
+    // ============================================
+    // MAIN GRAPH - Rutas Protegidas
+    // ============================================
+    
+    data object HomeScaffold : Route("home_scaffold")
 
-    data object Home : Route("home")
+    // CLIENT ROUTES
+    data object ClientRequests : Route("client_requests")
+    
+    data object ClientQuotes : Route("client_quotes")
+    
+    data object ClientDeals : Route("client_deals")
+    
+    data object ClientTemplates : Route("client_templates")
+    
+    data object ClientTracking : Route("client_tracking")
+    
+    data object ClientProfile : Route("client_profile")
 
-    data object Profile : Route("profile")
-
-    data object Settings : Route("settings")
-
-    data object Detail : Route("detail/{id}") {
-        fun createRoute(id: String) = "detail/$id"
-    }
+    // PROVIDER ROUTES
+    data object ProviderFleet : Route("provider_fleet")
+    
+    data object ProviderRoutes : Route("provider_routes")
+    
+    data object ProviderRequests : Route("provider_requests")
+    
+    data object ProviderDeals : Route("provider_deals")
+    
+    data object ProviderTracking : Route("provider_tracking")
+    
+    data object ProviderProfile : Route("provider_profile")
 }

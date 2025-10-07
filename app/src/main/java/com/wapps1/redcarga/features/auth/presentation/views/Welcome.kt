@@ -169,10 +169,3 @@ fun Welcome(
     }
 }
 
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-private fun WelcomePreview() {
-    RedcargaTheme(darkTheme = false) {
-        Welcome(onCreateAccount = {}, onLogin = {})
-    }
-}

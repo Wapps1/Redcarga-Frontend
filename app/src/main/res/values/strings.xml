@@ -48,26 +48,18 @@
 
     <!-- Sign In -->
     <string name="signin_email_or_phone">Email o Teléfono</string>
+    <string name="signin_email_label">Correo Electrónico</string>
     <string name="signin_password">PIN o Contraseña</string>
     <string name="signin_button">Iniciar Sesión</string>
     <string name="signin_register_link">¿No tienes cuenta? Regístrate</string>
 
-    <!-- Verify 2FA -->
-    <string name="verify_2fa_title">Verificación de seguridad</string>
-    <string name="verify_2fa_subtitle">Ingresa el código de 6 dígitos enviado a tu teléfono</string>
-    <string name="verify_2fa_code_label">Código de verificación</string>
-    <string name="verify_2fa_verify_button">Verificar</string>
-    <string name="verify_2fa_resend">Reenviar código</string>
-    <string name="verify_2fa_resend_in">Reenviar en %1$s</string>
-    <string name="verify_2fa_didnt_receive">¿No recibiste el código?</string>
+    <!-- Verify 2FA (eliminado: no se usa en el flujo actual) -->
 
     <!-- Forgot Password -->
     <string name="forgot_password_title">Recuperar contraseña</string>
     <string name="forgot_password_subtitle">Ingresa tu email o teléfono para recuperar tu cuenta</string>
     <string name="forgot_password_email_label">Email o Teléfono</string>
-    <string name="forgot_password_send_code">Enviar código</string>
-    <string name="forgot_password_code_sent">Código enviado a %1$s</string>
-    <string name="forgot_password_enter_code">Ingresa el código de verificación</string>
+    <!-- Eliminados textos de código para recuperar contraseña (no usados) -->
     <string name="forgot_password_new_password">Nueva contraseña</string>
     <string name="forgot_password_confirm_new_password">Confirmar nueva contraseña</string>
     <string name="forgot_password_reset_button">Restablecer contraseña</string>
@@ -75,49 +67,93 @@
 
     <!-- Sign Up Client -->
     <string name="signup_client_title">Registro de Cliente</string>
-    <string name="signup_client_step1_title">Información de Identidad</string>
-    <string name="signup_client_step1_subtitle">Verifica tu identidad con tu DNI</string>
-    <string name="signup_client_dni_label">DNI</string>
-    <string name="signup_client_full_name_label">Nombre Completo</string>
-    <string name="signup_client_step2_title">Información de Contacto</string>
-    <string name="signup_client_step2_subtitle">¿Cómo podemos contactarte?</string>
-    <string name="signup_client_phone_label">Teléfono</string>
+    
+    <!-- Step 1: Credenciales -->
+    <string name="signup_client_step1_title">Crea tu cuenta</string>
+    <string name="signup_client_step1_subtitle">Ingresa tu correo y contraseña</string>
     <string name="signup_client_email_label">Correo Electrónico</string>
-    <string name="signup_client_step3_title">Información Adicional</string>
-    <string name="signup_client_step3_subtitle">Completa tu perfil</string>
-    <string name="signup_client_age_label">Edad</string>
-    <string name="signup_client_ruc_label">RUC (Opcional)</string>
-    <string name="signup_client_step4_title">Crea tu PIN de Seguridad</string>
-    <string name="signup_client_step4_subtitle">Crea un PIN de 6 dígitos</string>
-    <string name="signup_client_pin_label">PIN</string>
-    <string name="signup_client_confirm_pin_label">Confirmar PIN</string>
-    <string name="signup_client_step5_title">Verificación de Teléfono</string>
-    <string name="signup_client_step5_subtitle">Verifica tu número de teléfono</string>
+    <string name="signup_client_password_label">Contraseña</string>
+    <string name="signup_client_confirm_password_label">Confirmar Contraseña</string>
+    
+    <!-- Step 2: Verificación Email -->
+    <string name="signup_client_step2_title">Verifica tu correo</string>
+    <string name="signup_client_step2_subtitle">Te enviamos un enlace de verificación a tu email. Ábrelo para continuar.</string>
+    
+    <!-- Step 3: Datos Personales -->
+    <string name="signup_client_step3_title">Completa tu perfil</string>
+    <string name="signup_client_step3_subtitle">Ingresa tus datos personales</string>
+    <string name="signup_client_full_name_label">Nombre Completo</string>
+    <string name="signup_client_phone_label">Teléfono</string>
+    <string name="signup_client_birth_date_label">Fecha de Nacimiento</string>
+    <string name="signup_client_document_type_label">Tipo de Documento</string>
+    <string name="signup_client_document_number_label">Número de Documento</string>
+    <string name="signup_client_username_label">Nombre de Usuario</string>
+    <string name="signup_client_ruc_label">RUC Personal</string>
+    <string name="signup_client_email_verified">¡Email verificado exitosamente!</string>
+    <string name="signup_client_verify_email_button">Verificar Email</string>
+    
+    <!-- Document Types -->
+    <string name="document_type_dni">DNI</string>
+    <string name="document_type_passport">Pasaporte</string>
+    <string name="document_type_ce">Carnet de Extranjería</string>
+    <string name="document_type_ruc">RUC</string>
 
     <!-- Sign Up Provider -->
     <string name="signup_provider_title">Registro de Proveedor</string>
-    <string name="signup_provider_step1_title">Información de Empresa</string>
-    <string name="signup_provider_step1_subtitle">Datos fiscales de tu empresa</string>
+    
+    <!-- Step 1: Credenciales (igual que cliente) -->
+    <string name="signup_provider_step1_title">Crea tu cuenta</string>
+    <string name="signup_provider_step1_subtitle">Ingresa tu correo y contraseña</string>
+    
+    <!-- Step 2: Verificación Email (igual que cliente) -->
+    <string name="signup_provider_step2_title">Verifica tu correo</string>
+    <string name="signup_provider_step2_subtitle">Te enviamos un enlace de verificación a tu email. Ábrelo para continuar.</string>
+    
+    <!-- Step 3: Datos Personales (igual que cliente) -->
+    <string name="signup_provider_step3_title">Completa tu perfil</string>
+    <string name="signup_provider_step3_subtitle">Ingresa tus datos personales</string>
+    
+    <!-- Step 4: Datos de la Empresa -->
+    <string name="signup_provider_step4_title">Datos de tu empresa</string>
+    <string name="signup_provider_step4_subtitle">Información de tu compañía</string>
+    <string name="signup_provider_legal_name_label">Nombre Legal</string>
+    <string name="signup_provider_commercial_name_label">Nombre Comercial</string>
     <string name="signup_provider_ruc_label">RUC</string>
-    <string name="signup_provider_business_name_label">Razón Social</string>
-    <string name="signup_provider_step2_title">Representante Legal</string>
-    <string name="signup_provider_step2_subtitle">Información del representante</string>
-    <string name="signup_provider_legal_dni_label">DNI del Representante</string>
-    <string name="signup_provider_legal_name_label">Nombre del Representante</string>
-    <string name="signup_provider_step3_title">Información de Contacto</string>
-    <string name="signup_provider_step3_subtitle">Datos de contacto de la empresa</string>
-    <string name="signup_provider_phone_label">Teléfono</string>
-    <string name="signup_provider_email_label">Correo Electrónico</string>
+    <string name="signup_provider_company_email_label">Email de la Empresa</string>
+    <string name="signup_provider_company_phone_label">Teléfono de la Empresa</string>
     <string name="signup_provider_address_label">Dirección</string>
-    <string name="signup_provider_step4_title">Crea tu PIN de Seguridad</string>
-    <string name="signup_provider_step4_subtitle">Crea un PIN de 6 dígitos</string>
-    <string name="signup_provider_pin_label">PIN</string>
-    <string name="signup_provider_confirm_pin_label">Confirmar PIN</string>
-    <string name="signup_provider_step5_title">Verificación de Teléfono</string>
-    <string name="signup_provider_step5_subtitle">Verifica tu número de teléfono</string>
 
     <!-- Common -->
     <string name="signup_step_of">Paso %1$d de %2$d</string>
     <string name="signup_next_button">Siguiente</string>
     <string name="signup_finish_button">Finalizar</string>
+    <string name="signup_register_button">Registrar</string>
+    <string name="signup_continue_button">Continuar</string>
+    <string name="signup_verify_email_button">Verificar Email</string>
+        
+    <!-- Bottom Navigation - Client -->
+    <string name="nav_client_requests">Solicitudes</string>
+    <string name="nav_client_quotes">Cotizaciones</string>
+    <string name="nav_client_deals">Tratos</string>
+    <string name="nav_client_templates">Plantillas</string>
+    <string name="nav_client_tracking">Tracking</string>
+    <string name="nav_client_profile">Perfil</string>
+    
+    <!-- Bottom Navigation - Provider -->
+    <string name="nav_provider_fleet">Flotas</string>
+    <string name="nav_provider_routes">Rutas</string>
+    <string name="nav_provider_requests">Solicitudes</string>
+    <string name="nav_provider_deals">Tratos</string>
+    <string name="nav_provider_tracking">Tracking</string>
+    <string name="nav_provider_profile">Perfil</string>
+    
+    <!-- Placeholder Screens -->
+    <string name="screen_title_requests">Solicitudes</string>
+    <string name="screen_title_quotes">Cotizaciones</string>
+    <string name="screen_title_deals">Tratos</string>
+    <string name="screen_title_templates">Plantillas</string>
+    <string name="screen_title_tracking">Tracking</string>
+    <string name="screen_title_profile">Perfil</string>
+    <string name="screen_title_fleet">Administrar Flotas</string>
+    <string name="screen_title_routes">Administrar Rutas</string>
 </resources>

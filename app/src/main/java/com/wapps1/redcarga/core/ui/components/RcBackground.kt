@@ -45,7 +45,6 @@ fun RcBackground(
                     val w = size.width
                     val h = size.height
 
-                    // Elipse izquierda (rosa coral)
                     val redRect = android.graphics.RectF(
                         -1.00f * w,
                         0.17f * h,
@@ -53,7 +52,6 @@ fun RcBackground(
                         0.17f * h + 1.05f * h
                     )
 
-                    // Elipse superior derecha (melocotón)
                     val orangeRect = android.graphics.RectF(
                         0.40f * w,
                         -0.33f * h,
@@ -61,7 +59,6 @@ fun RcBackground(
                         -0.33f * h + 0.89f * h
                     )
 
-                    // Elipse inferior derecha (rosa claro)
                     val pinkRect = android.graphics.RectF(
                         0.54f * w,
                         0.40f * h,

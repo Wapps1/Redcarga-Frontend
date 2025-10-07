@@ -6,7 +6,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import com.wapps1.redcarga.core.navigation.Navigation
-import com.wapps1.redcarga.core.session.SessionManager
+import com.wapps1.redcarga.core.session.AuthSessionStore
 import com.wapps1.redcarga.core.ui.theme.RedcargaTheme
 import com.wapps1.redcarga.core.util.LocaleHelper
 import dagger.hilt.android.AndroidEntryPoint
@@ -17,7 +17,7 @@ import javax.inject.Inject
 class MainActivity : ComponentActivity() {
     
     @Inject
-    lateinit var sessionManager: SessionManager
+    lateinit var authSessionStore: AuthSessionStore
     
     override fun attachBaseContext(newBase: Context) {
         super.attachBaseContext(LocaleHelper.setLocale(newBase, "es"))
@@ -28,7 +28,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             RedcargaTheme {
-                Navigation(sessionManager = sessionManager)
+                Navigation(store = authSessionStore)
             }
         }
     }
