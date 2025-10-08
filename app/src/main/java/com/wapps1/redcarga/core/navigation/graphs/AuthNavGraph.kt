@@ -1,16 +1,11 @@
 package com.wapps1.redcarga.core.navigation.graphs
 
-import androidx.compose.runtime.LaunchedEffect
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import com.wapps1.redcarga.core.navigation.NavGraph
 import com.wapps1.redcarga.core.navigation.Route
-import com.wapps1.redcarga.core.session.AuthSessionStore
-import com.wapps1.redcarga.features.auth.domain.models.value.Email
-import com.wapps1.redcarga.features.auth.domain.models.value.Password
-import com.wapps1.redcarga.features.auth.domain.models.value.Platform
 import com.wapps1.redcarga.features.auth.presentation.views.ChooseAccountType
 import com.wapps1.redcarga.features.auth.presentation.views.SignIn
 import com.wapps1.redcarga.features.auth.presentation.views.SignUpClient
@@ -19,9 +14,7 @@ import com.wapps1.redcarga.features.auth.presentation.views.Welcome
 
 
 fun NavGraphBuilder.authNavGraph(
-    navController: NavHostController,
-    store: AuthSessionStore,
-    onNavigateToMain: () -> Unit
+    navController: NavHostController
 ) {
     navigation(
         startDestination = Route.Welcome.route,
@@ -54,21 +47,21 @@ fun NavGraphBuilder.authNavGraph(
 
         composable(route = Route.SignUpClient.route) {
             SignUpClient(
-                onNavigateToMain = onNavigateToMain,
+                onNavigateToMain = { /* Navegación manejada en Navigation.kt */ },
                 onBackClick = { navController.popBackStack() }
             )
         }
 
         composable(route = Route.SignUpProvider.route) {
             SignUpProvider(
-                onNavigateToMain = onNavigateToMain,
+                onNavigateToMain = { /* Navegación manejada en Navigation.kt */ },
                 onBackClick = { navController.popBackStack() }
             )
         }
 
         composable(route = Route.SignIn.route) {
             SignIn(
-                onNavigateToMain = onNavigateToMain,
+                onNavigateToMain = { /* Navegación manejada en Navigation.kt */ },
                 onRegisterClick = { navController.navigate(Route.ChooseAccountType.route) },
                 onBackClick = { navController.popBackStack() }
             )

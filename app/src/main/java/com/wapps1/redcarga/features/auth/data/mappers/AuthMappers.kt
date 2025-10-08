@@ -45,7 +45,8 @@ fun AppLoginResponseDto.toDomainSession(nowMs: Long) = AppSession(
         "EXPIRED" -> SessionStatus.EXPIRED
         else -> SessionStatus.ACTIVE
     },
-    roles = (roles ?: emptyList()).mapNotNull { it.toRoleCodeOrNull() }
+    roles = (roles ?: emptyList()).mapNotNull { it.toRoleCodeOrNull() },
+    companyId = account?.companyId  // Extraer de account.companyId (solo para PROVIDER)
 )
 
 fun AppLoginResponseDto.toAccountSnapshotDomain(): AccountSnapshot? {

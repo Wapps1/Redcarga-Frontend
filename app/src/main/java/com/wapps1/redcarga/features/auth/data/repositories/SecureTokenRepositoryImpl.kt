@@ -64,6 +64,13 @@ class SecureTokenRepositoryImpl @Inject constructor(
             putString("app_tokenType", session.tokenType.name)
             putString("app_status", session.status.name)
             putString("app_roles_csv", session.roles.joinToString(","))
+            
+            // Guardar companyId si existe (solo para PROVIDER)
+            if (session.companyId != null) {
+                putLong("app_companyId", session.companyId)
+            } else {
+                remove("app_companyId")
+            }
         }.apply()
     }
 
@@ -78,6 +85,11 @@ class SecureTokenRepositoryImpl @Inject constructor(
             }
         }
         
+        // Recuperar companyId si existe (solo para PROVIDER)
+        val companyId = prefs.getLong("app_companyId", -1L).let {
+            if (it == -1L) null else it
+        }
+        
         AppSession(
             sessionId = prefs.getLong("app_sessionId", 0L),
             accountId = prefs.getLong("app_accountId", 0L),
@@ -85,7 +97,8 @@ class SecureTokenRepositoryImpl @Inject constructor(
             expiresAt = prefs.getLong("app_expiresAt", 0L),
             tokenType = TokenType.valueOf(prefs.getString("app_tokenType", TokenType.BEARER.name)!!),
             status = SessionStatus.valueOf(prefs.getString("app_status", SessionStatus.ACTIVE.name)!!),
-            roles = roles
+            roles = roles,
+            companyId = companyId
         )
     }
 
@@ -94,6 +107,8 @@ class SecureTokenRepositoryImpl @Inject constructor(
             .remove("app_sessionId").remove("app_accountId")
             .remove("app_accessToken").remove("app_expiresAt")
             .remove("app_tokenType").remove("app_status")
-            .remove("app_roles_csv").apply()
+            .remove("app_roles_csv")
+            .remove("app_companyId")  // Limpiar también el companyId
+            .apply()
     }
 }

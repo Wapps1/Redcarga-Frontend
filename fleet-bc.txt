@@ -1,0 +1,462 @@
+ESTE BC TIENE QUE MANEJAR TODO ESTO:
+
+VISTA PARA ADMINISITRACIÓN DE CONDUCTORES:
+
+TODA ESTA LISTA DE ENDPOINTS REQUIEREN SI O SI:
+REQUIERE EL TOKEN DE IAM. (NO EL DE FIREBASE!).
+
+-------------------------------------------------
+
+Endpoint para OBTENER LISTA DE CONDUCTORES:
+
+curl -X 'GET' \
+  'http://localhost:8080/fleet/companies/1/drivers' \
+  -H 'accept: */*' \
+  -H 'Authorization: Bearer eyJraWQiOiJpYW0tMjAyNS0wOS1rMSIsInR5cCI6IkpXVCIsImFsZyI6IlJTMjU2In0.eyJhdWQiOiJyZWRjYXJnYS1hcGkiLCJzdWIiOiIxIiwic3lzX3JvbGVzIjpbIlBST1ZJREVSIl0sImlzcyI6Imh0dHBzOi8vaWFtLnJlZGNhcmdhIiwic2Vzc2lvbklkIjoxLCJleHAiOjE3NTk4ODYxOTcsImlhdCI6MTc1OTg3ODk5N30.ctfaoo3SNjZAgSOcLJYVhQ1EwpzSYryceYyhKDpKXEJMMuT8MjvCbrC53se8oS5_MiUStFWWRV2s0uq3-mOr3Zri5Vo13bhSGaJaA4dAxqTJJeTROcIleiq758r3SAsuySiva6uggL3iW8PqKINsPRV4-L-mRmFDgiC4hCvhTr601GHhncHYX0HYb0YScLd5yNnHlhKmsTx6HVh33PGnQBQuMjYt37j9wkBr4x04imqzZxjlPL24sF6ys36g2uCfLpIGdmIfXVO_FeBg-OmCnwPVU_wTkdLzagqTduoni41iOsbKhDgyud3nBJkUuiFdfTbWkMU7C1Kn5izX9Ajz4g'
+
+
+Este endpoint retorna la data con este formato:
+
+[
+  {
+    "driverId": 1,
+    "companyId": 1,
+    "firstName": "Pepito",
+    "lastName": "Pinola",
+    "email": "pepito@gmail.com",
+    "phone": "999999999",
+    "licenseNumber": "B-123456",
+    "active": true,
+    "createdAt": 1759879341731,
+    "updatedAt": 1759879341731
+  },
+  {
+    "driverId": 2,
+    "companyId": 1,
+    "firstName": "Pepito2",
+    "lastName": "Pinola2",
+    "email": "pepito2@gmail.com",
+    "phone": "999998999",
+    "licenseNumber": "B-523456",
+    "active": true,
+    "createdAt": 1759879896535,
+    "updatedAt": 1759879896535
+  }
+]
+-------------------------------------------------
+
+Endpoint para OBTENER TODA LA INFORMACIÓN DE UN CONDUCTOR:
+
+curl -X 'GET' \
+  'http://localhost:8080/fleet/drivers/1' \
+  -H 'accept: */*' \
+  -H 'Authorization: Bearer eyJraWQiOiJpYW0tMjAyNS0wOS1rMSIsInR5cCI6IkpXVCIsImFsZyI6IlJTMjU2In0.eyJhdWQiOiJyZWRjYXJnYS1hcGkiLCJzdWIiOiIxIiwic3lzX3JvbGVzIjpbIlBST1ZJREVSIl0sImlzcyI6Imh0dHBzOi8vaWFtLnJlZGNhcmdhIiwic2Vzc2lvbklkIjoxLCJleHAiOjE3NTk4ODYxOTcsImlhdCI6MTc1OTg3ODk5N30.ctfaoo3SNjZAgSOcLJYVhQ1EwpzSYryceYyhKDpKXEJMMuT8MjvCbrC53se8oS5_MiUStFWWRV2s0uq3-mOr3Zri5Vo13bhSGaJaA4dAxqTJJeTROcIleiq758r3SAsuySiva6uggL3iW8PqKINsPRV4-L-mRmFDgiC4hCvhTr601GHhncHYX0HYb0YScLd5yNnHlhKmsTx6HVh33PGnQBQuMjYt37j9wkBr4x04imqzZxjlPL24sF6ys36g2uCfLpIGdmIfXVO_FeBg-OmCnwPVU_wTkdLzagqTduoni41iOsbKhDgyud3nBJkUuiFdfTbWkMU7C1Kn5izX9Ajz4g'
+
+Retorna la data con este formato:
+
+{
+  "driverId": 1,
+  "companyId": 1,
+  "firstName": "Pepito",
+  "lastName": "Pinola",
+  "email": "pepito@gmail.com",
+  "phone": "999999999",
+  "licenseNumber": "B-123456",
+  "active": true,
+  "createdAt": 1759879341731,
+  "updatedAt": 1759879341731
+}
+
+
+-------------------------------------------------
+
+Endpoint para CREAR UN NUEVO CONDUCTOR:
+
+curl -X 'POST' \
+  'http://localhost:8080/fleet/companies/1/drivers' \
+  -H 'accept: */*' \
+  -H 'Authorization: Bearer eyJraWQiOiJpYW0tMjAyNS0wOS1rMSIsInR5cCI6IkpXVCIsImFsZyI6IlJTMjU2In0.eyJhdWQiOiJyZWRjYXJnYS1hcGkiLCJzdWIiOiIxIiwic3lzX3JvbGVzIjpbIlBST1ZJREVSIl0sImlzcyI6Imh0dHBzOi8vaWFtLnJlZGNhcmdhIiwic2Vzc2lvbklkIjoxLCJleHAiOjE3NTk4ODYxOTcsImlhdCI6MTc1OTg3ODk5N30.ctfaoo3SNjZAgSOcLJYVhQ1EwpzSYryceYyhKDpKXEJMMuT8MjvCbrC53se8oS5_MiUStFWWRV2s0uq3-mOr3Zri5Vo13bhSGaJaA4dAxqTJJeTROcIleiq758r3SAsuySiva6uggL3iW8PqKINsPRV4-L-mRmFDgiC4hCvhTr601GHhncHYX0HYb0YScLd5yNnHlhKmsTx6HVh33PGnQBQuMjYt37j9wkBr4x04imqzZxjlPL24sF6ys36g2uCfLpIGdmIfXVO_FeBg-OmCnwPVU_wTkdLzagqTduoni41iOsbKhDgyud3nBJkUuiFdfTbWkMU7C1Kn5izX9Ajz4g' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "firstName": "Pepito",
+  "lastName": "Pinola",
+  "email": "pepito@gmail.com",
+  "phone": "999999999",
+  "licenseNumber": "B-123456",
+  "active": true
+}'
+
+Formato de como el endpoint recibe la data:
+{
+  "firstName": "Pepito",
+  "lastName": "Pinola",
+  "email": "pepito@gmail.com",
+  "phone": "999999999",
+  "licenseNumber": "B-123456",
+  "active": true
+}
+
+Como retorna la data si todo ocurrió bien:
+{
+  "ok": true,
+  "driverId": 1
+}
+
+-------------------------------------------------
+
+ENDPOINT PARA EDITAR LA INFORMACIÓN DE UN CONDUCTOR:
+
+curl -X 'PUT' \
+  'http://localhost:8080/fleet/drivers/2' \
+  -H 'accept: */*' \
+  -H 'Authorization: Bearer eyJraWQiOiJpYW0tMjAyNS0wOS1rMSIsInR5cCI6IkpXVCIsImFsZyI6IlJTMjU2In0.eyJhdWQiOiJyZWRjYXJnYS1hcGkiLCJzdWIiOiIxIiwic3lzX3JvbGVzIjpbIlBST1ZJREVSIl0sImlzcyI6Imh0dHBzOi8vaWFtLnJlZGNhcmdhIiwic2Vzc2lvbklkIjoxLCJleHAiOjE3NTk4ODYxOTcsImlhdCI6MTc1OTg3ODk5N30.ctfaoo3SNjZAgSOcLJYVhQ1EwpzSYryceYyhKDpKXEJMMuT8MjvCbrC53se8oS5_MiUStFWWRV2s0uq3-mOr3Zri5Vo13bhSGaJaA4dAxqTJJeTROcIleiq758r3SAsuySiva6uggL3iW8PqKINsPRV4-L-mRmFDgiC4hCvhTr601GHhncHYX0HYb0YScLd5yNnHlhKmsTx6HVh33PGnQBQuMjYt37j9wkBr4x04imqzZxjlPL24sF6ys36g2uCfLpIGdmIfXVO_FeBg-OmCnwPVU_wTkdLzagqTduoni41iOsbKhDgyud3nBJkUuiFdfTbWkMU7C1Kn5izX9Ajz4g' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "firstName": "PepitoXDD2",
+  "lastName": "Pinola2",
+  "email": "pepito2@gmail.com",
+  "phone": "999998999",
+  "licenseNumber": "B-523456",
+  "active": true
+}'
+
+Como recibe la data:
+
+{
+  "firstName": "PepitoXDD2",
+  "lastName": "Pinola2",
+  "email": "pepito2@gmail.com",
+  "phone": "999998999",
+  "licenseNumber": "B-523456",
+  "active": true
+}
+
+Como retorna la data:
+No retorna nada, SI TODO OCURRIÓ bien, solo retorna una respuesta con status code de 204.
+
+
+-------------------------------------------------
+
+ENDPOINT PARA ELIMINAR A UN CONDUCTOR:
+
+
+curl -X 'DELETE' \
+  'http://localhost:8080/fleet/drivers/2' \
+  -H 'accept: */*' \
+  -H 'Authorization: Bearer eyJraWQiOiJpYW0tMjAyNS0wOS1rMSIsInR5cCI6IkpXVCIsImFsZyI6IlJTMjU2In0.eyJhdWQiOiJyZWRjYXJnYS1hcGkiLCJzdWIiOiIxIiwic3lzX3JvbGVzIjpbIlBST1ZJREVSIl0sImlzcyI6Imh0dHBzOi8vaWFtLnJlZGNhcmdhIiwic2Vzc2lvbklkIjoxLCJleHAiOjE3NTk4ODYxOTcsImlhdCI6MTc1OTg3ODk5N30.ctfaoo3SNjZAgSOcLJYVhQ1EwpzSYryceYyhKDpKXEJMMuT8MjvCbrC53se8oS5_MiUStFWWRV2s0uq3-mOr3Zri5Vo13bhSGaJaA4dAxqTJJeTROcIleiq758r3SAsuySiva6uggL3iW8PqKINsPRV4-L-mRmFDgiC4hCvhTr601GHhncHYX0HYb0YScLd5yNnHlhKmsTx6HVh33PGnQBQuMjYt37j9wkBr4x04imqzZxjlPL24sF6ys36g2uCfLpIGdmIfXVO_FeBg-OmCnwPVU_wTkdLzagqTduoni41iOsbKhDgyud3nBJkUuiFdfTbWkMU7C1Kn5izX9Ajz4g'
+
+
+Como retorna la data:
+No retorna nada, SI TODO OCURRIÓ bien, solo retorna una respuesta con status code de 204.
+
+-------------------------------------------------
+
+VISTA PARA ADMINISITRACIÓN DE VEHÍCULOS:
+
+TODA ESTA LISTA DE ENDPOINTS REQUIEREN SI O SI:
+REQUIERE EL TOKEN DE IAM. (NO EL DE FIREBASE!).
+
+-------------------------------------------------
+
+Endpoint para OBTENER LISTA DE VEHÍCULOS:
+
+curl -X 'GET' \
+  'http://localhost:8080/fleet/companies/1/vehicles' \
+  -H 'accept: */*' \
+  -H 'Authorization: Bearer eyJraWQiOiJpYW0tMjAyNS0wOS1rMSIsInR5cCI6IkpXVCIsImFsZyI6IlJTMjU2In0.eyJhdWQiOiJyZWRjYXJnYS1hcGkiLCJzdWIiOiIxIiwic3lzX3JvbGVzIjpbIlBST1ZJREVSIl0sImlzcyI6Imh0dHBzOi8vaWFtLnJlZGNhcmdhIiwic2Vzc2lvbklkIjoxLCJleHAiOjE3NTk4ODYxOTcsImlhdCI6MTc1OTg3ODk5N30.ctfaoo3SNjZAgSOcLJYVhQ1EwpzSYryceYyhKDpKXEJMMuT8MjvCbrC53se8oS5_MiUStFWWRV2s0uq3-mOr3Zri5Vo13bhSGaJaA4dAxqTJJeTROcIleiq758r3SAsuySiva6uggL3iW8PqKINsPRV4-L-mRmFDgiC4hCvhTr601GHhncHYX0HYb0YScLd5yNnHlhKmsTx6HVh33PGnQBQuMjYt37j9wkBr4x04imqzZxjlPL24sF6ys36g2uCfLpIGdmIfXVO_FeBg-OmCnwPVU_wTkdLzagqTduoni41iOsbKhDgyud3nBJkUuiFdfTbWkMU7C1Kn5izX9Ajz4g'
+
+Como retorna la data:
+
+[
+  {
+    "vehicleId": 1,
+    "companyId": 1,
+    "name": "Camión Volvo FH16",
+    "plate": "ABC-123",
+    "active": true,
+    "createdAt": 1759881419966,
+    "updatedAt": 1759881419966
+  },
+  {
+    "vehicleId": 2,
+    "companyId": 1,
+    "name": "Furgoneta Mercedes Sprinter",
+    "plate": "XYZ-789",
+    "active": true,
+    "createdAt": 1759881818608,
+    "updatedAt": 1759881818608
+  }
+]
+
+-------------------------------------------------
+
+Endpoint para CREAR un vehículo:
+
+curl -X 'POST' \
+  'http://localhost:8080/fleet/companies/1/vehicles' \
+  -H 'accept: */*' \
+  -H 'Authorization: Bearer eyJraWQiOiJpYW0tMjAyNS0wOS1rMSIsInR5cCI6IkpXVCIsImFsZyI6IlJTMjU2In0.eyJhdWQiOiJyZWRjYXJnYS1hcGkiLCJzdWIiOiIxIiwic3lzX3JvbGVzIjpbIlBST1ZJREVSIl0sImlzcyI6Imh0dHBzOi8vaWFtLnJlZGNhcmdhIiwic2Vzc2lvbklkIjoxLCJleHAiOjE3NTk4ODYxOTcsImlhdCI6MTc1OTg3ODk5N30.ctfaoo3SNjZAgSOcLJYVhQ1EwpzSYryceYyhKDpKXEJMMuT8MjvCbrC53se8oS5_MiUStFWWRV2s0uq3-mOr3Zri5Vo13bhSGaJaA4dAxqTJJeTROcIleiq758r3SAsuySiva6uggL3iW8PqKINsPRV4-L-mRmFDgiC4hCvhTr601GHhncHYX0HYb0YScLd5yNnHlhKmsTx6HVh33PGnQBQuMjYt37j9wkBr4x04imqzZxjlPL24sF6ys36g2uCfLpIGdmIfXVO_FeBg-OmCnwPVU_wTkdLzagqTduoni41iOsbKhDgyud3nBJkUuiFdfTbWkMU7C1Kn5izX9Ajz4g' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "name": "Furgoneta Mercedes Sprinter",
+  "plate": "XYZ-789",
+  "active": true
+}'
+
+Como recibe la data:
+{
+  "name": "Furgoneta Mercedes Sprinter",
+  "plate": "XYZ-789",
+  "active": true
+}
+
+Como retorna la data:
+{
+  "ok": true,
+  "vehicleId": 2
+}
+
+-------------------------------------------------
+
+Endpoint para EDITAR un vehículo:
+
+curl -X 'PUT' \
+  'http://localhost:8080/fleet/vehicles/2' \
+  -H 'accept: */*' \
+  -H 'Authorization: Bearer eyJraWQiOiJpYW0tMjAyNS0wOS1rMSIsInR5cCI6IkpXVCIsImFsZyI6IlJTMjU2In0.eyJhdWQiOiJyZWRjYXJnYS1hcGkiLCJzdWIiOiIxIiwic3lzX3JvbGVzIjpbIlBST1ZJREVSIl0sImlzcyI6Imh0dHBzOi8vaWFtLnJlZGNhcmdhIiwic2Vzc2lvbklkIjoxLCJleHAiOjE3NTk4ODYxOTcsImlhdCI6MTc1OTg3ODk5N30.ctfaoo3SNjZAgSOcLJYVhQ1EwpzSYryceYyhKDpKXEJMMuT8MjvCbrC53se8oS5_MiUStFWWRV2s0uq3-mOr3Zri5Vo13bhSGaJaA4dAxqTJJeTROcIleiq758r3SAsuySiva6uggL3iW8PqKINsPRV4-L-mRmFDgiC4hCvhTr601GHhncHYX0HYb0YScLd5yNnHlhKmsTx6HVh33PGnQBQuMjYt37j9wkBr4x04imqzZxjlPL24sF6ys36g2uCfLpIGdmIfXVO_FeBg-OmCnwPVU_wTkdLzagqTduoni41iOsbKhDgyud3nBJkUuiFdfTbWkMU7C1Kn5izX9Ajz4g' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "name": "Furgoneta Mercedes XDD OK MANITO",
+  "plate": "XYZ-789",
+  "active": true
+}'
+
+Como recibe la data:
+{
+  "name": "Furgoneta Mercedes XDD OK MANITO",
+  "plate": "XYZ-789",
+  "active": true
+}
+
+Como retorna la data:
+No retorna nada, SI TODO OCURRIÓ bien, solo retorna una respuesta con status code de 204.
+
+-------------------------------------------------
+
+Endpoint para ELIMINAR un vehiculo:
+
+curl -X 'DELETE' \
+  'http://localhost:8080/fleet/vehicles/1' \
+  -H 'accept: */*' \
+  -H 'Authorization: Bearer eyJraWQiOiJpYW0tMjAyNS0wOS1rMSIsInR5cCI6IkpXVCIsImFsZyI6IlJTMjU2In0.eyJhdWQiOiJyZWRjYXJnYS1hcGkiLCJzdWIiOiIxIiwic3lzX3JvbGVzIjpbIlBST1ZJREVSIl0sImlzcyI6Imh0dHBzOi8vaWFtLnJlZGNhcmdhIiwic2Vzc2lvbklkIjoxLCJleHAiOjE3NTk4ODYxOTcsImlhdCI6MTc1OTg3ODk5N30.ctfaoo3SNjZAgSOcLJYVhQ1EwpzSYryceYyhKDpKXEJMMuT8MjvCbrC53se8oS5_MiUStFWWRV2s0uq3-mOr3Zri5Vo13bhSGaJaA4dAxqTJJeTROcIleiq758r3SAsuySiva6uggL3iW8PqKINsPRV4-L-mRmFDgiC4hCvhTr601GHhncHYX0HYb0YScLd5yNnHlhKmsTx6HVh33PGnQBQuMjYt37j9wkBr4x04imqzZxjlPL24sF6ys36g2uCfLpIGdmIfXVO_FeBg-OmCnwPVU_wTkdLzagqTduoni41iOsbKhDgyud3nBJkUuiFdfTbWkMU7C1Kn5izX9Ajz4g'
+
+Como retorna la data:
+No retorna nada, SI TODO OCURRIÓ bien, solo retorna una respuesta con status code de 204.
+
+
+
+VISTA PARA ADMINISITRACIÓN DE RUTAS:
+
+TODA ESTA LISTA DE ENDPOINTS REQUIEREN SI O SI:
+REQUIERE EL TOKEN DE IAM. (NO EL DE FIREBASE!).
+
+-------------------------------------------------
+
+Endpoint para OBTENER LISTA DE RUTAS:
+
+curl -X 'GET' \
+  'http://localhost:8080/planning/providers/1/routes' \
+  -H 'accept: */*' \
+  -H 'Authorization: Bearer eyJraWQiOiJpYW0tMjAyNS0wOS1rMSIsInR5cCI6IkpXVCIsImFsZyI6IlJTMjU2In0.eyJhdWQiOiJyZWRjYXJnYS1hcGkiLCJzdWIiOiIxIiwic3lzX3JvbGVzIjpbIlBST1ZJREVSIl0sImlzcyI6Imh0dHBzOi8vaWFtLnJlZGNhcmdhIiwic2Vzc2lvbklkIjoxLCJleHAiOjE3NTk4ODYxOTcsImlhdCI6MTc1OTg3ODk5N30.ctfaoo3SNjZAgSOcLJYVhQ1EwpzSYryceYyhKDpKXEJMMuT8MjvCbrC53se8oS5_MiUStFWWRV2s0uq3-mOr3Zri5Vo13bhSGaJaA4dAxqTJJeTROcIleiq758r3SAsuySiva6uggL3iW8PqKINsPRV4-L-mRmFDgiC4hCvhTr601GHhncHYX0HYb0YScLd5yNnHlhKmsTx6HVh33PGnQBQuMjYt37j9wkBr4x04imqzZxjlPL24sF6ys36g2uCfLpIGdmIfXVO_FeBg-OmCnwPVU_wTkdLzagqTduoni41iOsbKhDgyud3nBJkUuiFdfTbWkMU7C1Kn5izX9Ajz4g'
+
+Como retorna la data:
+
+[
+  {
+    "routeId": 2,
+    "companyId": 1,
+    "companyName": "OK XD",
+    "routeType": "PP",
+    "originDepartmentCode": "13",
+    "originProvinceCode": "1301",
+    "destDepartmentCode": "15",
+    "destProvinceCode": "1501",
+    "originDepartmentName": "La Libertad",
+    "originProvinceName": "TRUJILLO",
+    "destDepartmentName": "Lima",
+    "destProvinceName": "LIMA",
+    "active": true
+  },
+  {
+    "routeId": 3,
+    "companyId": 1,
+    "companyName": "OK XD",
+    "routeType": "PP",
+    "originDepartmentCode": "13",
+    "originProvinceCode": "1302",
+    "destDepartmentCode": "15",
+    "destProvinceCode": "1501",
+    "originDepartmentName": "La Libertad",
+    "originProvinceName": "ASCOPE",
+    "destDepartmentName": "Lima",
+    "destProvinceName": "LIMA",
+    "active": true
+  },
+  {
+    "routeId": 1,
+    "companyId": 1,
+    "companyName": "OK XD",
+    "routeType": "DD",
+    "originDepartmentCode": "14",
+    "originProvinceCode": null,
+    "destDepartmentCode": "15",
+    "destProvinceCode": null,
+    "originDepartmentName": "Lambayeque",
+    "originProvinceName": null,
+    "destDepartmentName": "Lima",
+    "destProvinceName": null,
+    "active": true
+  }
+]
+
+-------------------------------------------------
+
+Endpoint para CREAR UNA RUTA:
+
+curl -X 'POST' \
+  'http://localhost:8080/planning/companies/1/routes' \
+  -H 'accept: */*' \
+  -H 'Authorization: Bearer eyJraWQiOiJpYW0tMjAyNS0wOS1rMSIsInR5cCI6IkpXVCIsImFsZyI6IlJTMjU2In0.eyJhdWQiOiJyZWRjYXJnYS1hcGkiLCJzdWIiOiIxIiwic3lzX3JvbGVzIjpbIlBST1ZJREVSIl0sImlzcyI6Imh0dHBzOi8vaWFtLnJlZGNhcmdhIiwic2Vzc2lvbklkIjozLCJleHAiOjE3NTk4OTY0OTAsImlhdCI6MTc1OTg4OTI5MH0.SZdp0kUetgvNOOFf3Efyt--yXcN4oTxk8X1Uy5idc51E9FTQLV8UmmEgvobi6zz5ZxmvbLaDuGm_pnhyoJnkNsIak09-Dn3aVSS0L50rfAVlIM0wFry4dOVGT6l9TSLgnlPSTsr1g83IghNouMfnovpvCG-fE374LWr-TMaVNakPefokUs5Bu48S9Xg5cAK7ng_X5NDgfM1_ObvCb7XpzE_NcCZsiTHli0cVtXH07gcegjsWNLdDWbzmjvhPviAvzJTLub-yDGmYH50UIOECwAV2FjhAmhW2-mdsNG91eiEC10UzqwpmbafuqNUXkG1BTdjBfR64YJwoo7ah7zyTLA' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "routeTypeId": 2,
+  "originDepartmentCode": "13",
+  "destDepartmentCode": "15",
+  "originProvinceCode": "1302",
+  "destProvinceCode": "1501",
+  "active": true
+}'
+
+Como recibe la data:
+{
+  "routeTypeId": 2,
+  "originDepartmentCode": "13",
+  "destDepartmentCode": "15",
+  "originProvinceCode": "1302",
+  "destProvinceCode": "1501",
+  "active": true
+}
+
+Como retorna la data:
+{
+  "success": true,
+  "routeId": 3
+}
+
+
+-------------------------------------------------
+
+Endpoint para obtener todos los datos DE UNA RUTA:
+
+curl -X 'GET' \
+  'http://localhost:8080/planning/companies/1/routes/4' \
+  -H 'accept: */*' \
+  -H 'Authorization: Bearer eyJraWQiOiJpYW0tMjAyNS0wOS1rMSIsInR5cCI6IkpXVCIsImFsZyI6IlJTMjU2In0.eyJhdWQiOiJyZWRjYXJnYS1hcGkiLCJzdWIiOiIxIiwic3lzX3JvbGVzIjpbIlBST1ZJREVSIl0sImlzcyI6Imh0dHBzOi8vaWFtLnJlZGNhcmdhIiwic2Vzc2lvbklkIjozLCJleHAiOjE3NTk4OTY0OTAsImlhdCI6MTc1OTg4OTI5MH0.SZdp0kUetgvNOOFf3Efyt--yXcN4oTxk8X1Uy5idc51E9FTQLV8UmmEgvobi6zz5ZxmvbLaDuGm_pnhyoJnkNsIak09-Dn3aVSS0L50rfAVlIM0wFry4dOVGT6l9TSLgnlPSTsr1g83IghNouMfnovpvCG-fE374LWr-TMaVNakPefokUs5Bu48S9Xg5cAK7ng_X5NDgfM1_ObvCb7XpzE_NcCZsiTHli0cVtXH07gcegjsWNLdDWbzmjvhPviAvzJTLub-yDGmYH50UIOECwAV2FjhAmhW2-mdsNG91eiEC10UzqwpmbafuqNUXkG1BTdjBfR64YJwoo7ah7zyTLA'
+
+Como retorna la data:
+{
+  "routeId": 4,
+  "companyId": 1,
+  "companyName": "OK XD",
+  "routeType": "PP",
+  "originDepartmentCode": "12",
+  "originProvinceCode": "1201",
+  "destDepartmentCode": "15",
+  "destProvinceCode": "1501",
+  "originDepartmentName": "Junín",
+  "originProvinceName": "HUANCAYO",
+  "destDepartmentName": "Lima",
+  "destProvinceName": "LIMA",
+  "active": true
+}
+
+
+-------------------------------------------------
+
+Endpoint para editar UNA RUTA:
+
+curl -X 'PUT' \
+  'http://localhost:8080/planning/companies/1/routes/4' \
+  -H 'accept: */*' \
+  -H 'Authorization: Bearer eyJraWQiOiJpYW0tMjAyNS0wOS1rMSIsInR5cCI6IkpXVCIsImFsZyI6IlJTMjU2In0.eyJhdWQiOiJyZWRjYXJnYS1hcGkiLCJzdWIiOiIxIiwic3lzX3JvbGVzIjpbIlBST1ZJREVSIl0sImlzcyI6Imh0dHBzOi8vaWFtLnJlZGNhcmdhIiwic2Vzc2lvbklkIjozLCJleHAiOjE3NTk4OTY0OTAsImlhdCI6MTc1OTg4OTI5MH0.SZdp0kUetgvNOOFf3Efyt--yXcN4oTxk8X1Uy5idc51E9FTQLV8UmmEgvobi6zz5ZxmvbLaDuGm_pnhyoJnkNsIak09-Dn3aVSS0L50rfAVlIM0wFry4dOVGT6l9TSLgnlPSTsr1g83IghNouMfnovpvCG-fE374LWr-TMaVNakPefokUs5Bu48S9Xg5cAK7ng_X5NDgfM1_ObvCb7XpzE_NcCZsiTHli0cVtXH07gcegjsWNLdDWbzmjvhPviAvzJTLub-yDGmYH50UIOECwAV2FjhAmhW2-mdsNG91eiEC10UzqwpmbafuqNUXkG1BTdjBfR64YJwoo7ah7zyTLA' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "routeTypeId": 2,
+    "originDepartmentCode": "12",
+    "originProvinceCode": "1202",
+    "destDepartmentCode": "15",
+    "destProvinceCode": "1501",
+    "active": true
+}'
+
+Como recibe la data:
+{
+  "routeTypeId": 2,
+    "originDepartmentCode": "12",
+    "originProvinceCode": "1202",
+    "destDepartmentCode": "15",
+    "destProvinceCode": "1501",
+    "active": true
+}
+
+Como retorno la data:
+No retorna nada, SI TODO OCURRIÓ bien, solo retorna una respuesta con status code de 204.
+
+
+-------------------------------------------------
+
+Endpoint para ELIMINAR una ruta:
+
+curl -X 'DELETE' \
+  'http://localhost:8080/planning/companies/1/routes/4' \
+  -H 'accept: */*' \
+  -H 'Authorization: Bearer eyJraWQiOiJpYW0tMjAyNS0wOS1rMSIsInR5cCI6IkpXVCIsImFsZyI6IlJTMjU2In0.eyJhdWQiOiJyZWRjYXJnYS1hcGkiLCJzdWIiOiIxIiwic3lzX3JvbGVzIjpbIlBST1ZJREVSIl0sImlzcyI6Imh0dHBzOi8vaWFtLnJlZGNhcmdhIiwic2Vzc2lvbklkIjozLCJleHAiOjE3NTk4OTY0OTAsImlhdCI6MTc1OTg4OTI5MH0.SZdp0kUetgvNOOFf3Efyt--yXcN4oTxk8X1Uy5idc51E9FTQLV8UmmEgvobi6zz5ZxmvbLaDuGm_pnhyoJnkNsIak09-Dn3aVSS0L50rfAVlIM0wFry4dOVGT6l9TSLgnlPSTsr1g83IghNouMfnovpvCG-fE374LWr-TMaVNakPefokUs5Bu48S9Xg5cAK7ng_X5NDgfM1_ObvCb7XpzE_NcCZsiTHli0cVtXH07gcegjsWNLdDWbzmjvhPviAvzJTLub-yDGmYH50UIOECwAV2FjhAmhW2-mdsNG91eiEC10UzqwpmbafuqNUXkG1BTdjBfR64YJwoo7ah7zyTLA'
+
+Como retorna la data:
+No retorna nada, SI TODO OCURRIÓ bien, solo retorna una respuesta con status code de 204.
+
+
+-------------------------------------------------
+
+Endpoint para OBTENER TODO EL CATÁLOGO DE GEOLOCALIZACIÓN:
+
+curl -X 'GET' \
+  'http://localhost:8080/geo/catalog' \
+  -H 'accept: */*'
+
+Como retorna la data:
+{
+  "departments": [
+    {
+      "code": "01",
+      "name": "Amazonas"
+    },
+    {
+      "code": "02",
+      "name": "Áncash"
+    }
+  ],
+  "provinces": [
+    {
+      "code": "0208",
+      "departmentCode": "02",
+      "name": "CASMA"
+    },
+    {
+      "code": "0404",
+      "departmentCode": "04",
+      "name": "CASTILLA"
+    }
+  ]
+}
+

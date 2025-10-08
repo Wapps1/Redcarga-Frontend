@@ -7,10 +7,11 @@ import com.wapps1.redcarga.features.auth.domain.models.value.*
  */
 data class AppSession(
     val sessionId: Long,
-    val accountId: Long,              // NUEVO
+    val accountId: Long,
     val accessToken: String,
     val expiresAt: Long,
     val tokenType: TokenType,
     val status: SessionStatus,
-    val roles: List<RoleCode>         // ya no opcional
+    val roles: List<RoleCode>,
+    val companyId: Long? = null       // Solo presente para usuarios PROVIDER
 )

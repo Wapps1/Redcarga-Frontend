@@ -40,6 +40,42 @@
     <string name="error_server">Server error. Try again later.</string>
     <string name="error_unknown">An unexpected error occurred.</string>
 
+    <!-- Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_quotes">Quotes</string>
+    <string name="nav_make_request">Request</string>
+    <string name="nav_requests">Requests</string>
+    <string name="nav_geolocation">Routes</string>
+    <string name="nav_chat">Chat</string>
+    <string name="nav_profile">Profile</string>
+
+    <!-- Home -->
+    <string name="home_greeting_client">Hello, Client!</string>
+    <string name="home_greeting_provider">Hello, Provider!</string>
+    <string name="home_welcome_message">Welcome to Red Carga</string>
+    <string name="home_welcome">Welcome!</string>
+    
+    <!-- Provider Home -->
+    <string name="provider_home_active_deals">Latest active deals</string>
+    <string name="provider_home_company">Company 1\nRequest!</string>
+    <string name="provider_home_see_more">see more</string>
+    <string name="provider_home_actions">Actions</string>
+    <string name="provider_home_manage_routes">Manage\nRoutes</string>
+    <string name="provider_home_manage_drivers">Manage\ndrivers</string>
+    <string name="provider_home_manage_fleet">Manage\nFleet</string>
+    <string name="provider_home_your_routes">Your Routes</string>
+    <string name="provider_home_route_origin">La Molina, Lima</string>
+    <string name="provider_home_route_destination">La Victoria, Chiclayo</string>
+    <string name="provider_home_view_route">View route</string>
+    <string name="provider_home_your_drivers">Your Drivers</string>
+    <string name="provider_home_driver_name">Juan Pérez</string>
+    <string name="provider_home_driver_dni">ID: 12345789</string>
+    <string name="provider_home_view_drivers">View drivers</string>
+    <string name="provider_home_your_fleet">Your Fleet</string>
+    <string name="provider_home_vehicle_name">Truck</string>
+    <string name="provider_home_vehicle_plate">PLATE: 123-BTW</string>
+    <string name="provider_home_view_fleet">View fleet</string>
+
     <!-- Choose Account Type -->
     <string name="choose_account_title">How do you want to use Red Carga?</string>
     <string name="account_type_client">I\'M A CLIENT</string>
@@ -157,4 +193,85 @@
     <string name="screen_title_profile">Profile</string>
     <string name="screen_title_fleet">Manage Fleet</string>
     <string name="screen_title_routes">Manage Routes</string>
+    
+    <!-- Routes Management -->
+    <string name="routes_title">Routes</string>
+    <string name="routes_add_button">Add Routes</string>
+    <string name="routes_filter_all">All</string>
+    <string name="routes_filter_type">Type</string>
+    <string name="routes_filter_department">Department</string>
+    <string name="routes_filter_status">Status</string>
+    <string name="routes_type_pp">PP</string>
+    <string name="routes_type_dd">DD</string>
+    <string name="routes_origin">Origin:</string>
+    <string name="routes_stop">Stop:</string>
+    <string name="routes_destination">Destination:</string>
+    <string name="routes_active">Active</string>
+    <string name="routes_inactive">Inactive</string>
+    <string name="routes_empty">No routes registered</string>
+    <string name="routes_empty_subtitle">Add your first route to get started</string>
+    
+    <!-- Create Route Dialog -->
+    <string name="create_route_title">Create Route</string>
+    <string name="edit_route_title">Edit Route</string>
+    <string name="route_type_label">Route Type</string>
+    <string name="route_origin_dept_label">Department</string>
+    <string name="route_origin_prov_label">Province</string>
+    <string name="route_origin_dist_label">District</string>
+    <string name="route_destination_dept_label">Department</string>
+    <string name="route_destination_prov_label">Province</string>
+    <string name="route_destination_dist_label">District</string>
+    <string name="route_stop_dept_label">Department (Stop)</string>
+    <string name="route_stop_prov_label">Province (Stop)</string>
+    <string name="route_stop_dist_label">District (Stop)</string>
+    <string name="route_create_button">Create</string>
+    <string name="route_update_button">Update</string>
+    <string name="route_delete_button">Delete</string>
+    <string name="route_delete_confirm_title">Delete route?</string>
+    <string name="route_delete_confirm_message">This action cannot be undone</string>
+    
+    <!-- Geo locations -->
+    <string name="geo_select_department">Select department</string>
+    <string name="geo_select_province">Select province</string>
+    <string name="geo_select_district">Select district</string>
+
+    <!-- Drivers Management -->
+    <string name="drivers_title">Drivers</string>
+    <string name="drivers_your">Your Drivers</string>
+    <string name="drivers_add_button">Add Driver</string>
+    <string name="drivers_empty">No drivers registered</string>
+    <string name="drivers_empty_subtitle">Press the button to add one</string>
+    <string name="drivers_create_title">Create Driver</string>
+    <string name="drivers_edit_title">Edit Driver</string>
+    <string name="drivers_created">Driver created</string>
+    <string name="drivers_updated">Driver updated</string>
+    <string name="drivers_deleted">Driver deleted</string>
+    <string name="drivers_license_label">License: %1$s</string>
+    <string name="drivers_card_email_label">Email</string>
+    <string name="drivers_card_phone_label">Phone</string>
+    <string name="drivers_active">Active</string>
+    <string name="drivers_inactive">Inactive</string>
+    <string name="drivers_section_personal">Personal Information</string>
+    <string name="drivers_first_name">First Name</string>
+    <string name="drivers_last_name">Last Name</string>
+    <string name="drivers_section_contact">Contact</string>
+    <string name="drivers_email">Email</string>
+    <string name="drivers_phone">Phone</string>
+    <string name="drivers_license_number">License Number</string>
+    <string name="drivers_active_label">Driver Active</string>
+    <string name="drivers_save_button">Save Driver</string>
+    <string name="common_refresh">Refresh</string>
+
+    <!-- Vehicles Management -->
+    <string name="vehicles_title">Vehicles</string>
+    <string name="vehicles_your">Your Vehicles</string>
+    <string name="vehicles_add_button">Add Vehicle</string>
+    <string name="vehicles_empty">No vehicles registered</string>
+    <string name="vehicles_created">Vehicle created</string>
+    <string name="vehicles_updated">Vehicle updated</string>
+    <string name="vehicles_deleted">Vehicle deleted</string>
+    <string name="vehicles_name">Name</string>
+    <string name="vehicles_plate">Plate</string>
+    <string name="vehicles_active">Active</string>
+    <string name="vehicles_inactive">Inactive</string>
 </resources>

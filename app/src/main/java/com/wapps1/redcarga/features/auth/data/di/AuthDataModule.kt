@@ -19,6 +19,7 @@ import dagger.hilt.components.SingletonComponent
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
+import okio.Buffer
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import javax.inject.Named
@@ -56,11 +57,25 @@ object AuthDataModule {
         val loggingInterceptor = HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BODY
         }
-        
+        // Interceptor adicional para loguear el cuerpo enviado (request) de forma segura
+        val requestLogger = Interceptor { chain ->
+            val req = chain.request()
+            val copy = req.newBuilder().build()
+            val buffer = Buffer()
+            copy.body?.writeTo(buffer)
+            val bodyString = try { buffer.readUtf8() } catch (_: Throwable) { "<binary or empty>" }
+            android.util.Log.d("OkHttpRequest", "→ ${req.method} ${req.url}\nHeaders: ${req.headers}\nBody: $bodyString")
+            chain.proceed(req)
+        }
+
         return OkHttpClient.Builder()
-            .addInterceptor(loggingInterceptor)
+            // Autenticación primero (modifica headers)
             .addInterceptor(firebaseInterceptor)
             .addInterceptor(appInterceptor)
+            // Luego log del request ya final
+            .addInterceptor(requestLogger)
+            // Y log de red para ver exactamente lo que sale/entra por socket
+            .addNetworkInterceptor(loggingInterceptor)
             .build()
     }
 
@@ -69,8 +84,18 @@ object AuthDataModule {
         val loggingInterceptor = HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BODY
         }
+        val requestLogger = Interceptor { chain ->
+            val req = chain.request()
+            val copy = req.newBuilder().build()
+            val buffer = Buffer()
+            copy.body?.writeTo(buffer)
+            val bodyString = try { buffer.readUtf8() } catch (_: Throwable) { "<binary or empty>" }
+            android.util.Log.d("OkHttpRequest", "→ ${req.method} ${req.url}\nHeaders: ${req.headers}\nBody: $bodyString")
+            chain.proceed(req)
+        }
         return OkHttpClient.Builder()
-            .addInterceptor(loggingInterceptor)
+            .addInterceptor(requestLogger)
+            .addNetworkInterceptor(loggingInterceptor)
             .build()
     }
 
