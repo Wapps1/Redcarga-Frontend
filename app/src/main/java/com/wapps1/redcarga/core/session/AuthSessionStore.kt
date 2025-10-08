@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.StateFlow
 interface AuthSessionStore {
     val sessionState: StateFlow<SessionState>
     val currentUserType: StateFlow<UserType?>
+    val currentCompanyId: StateFlow<Long?>  // CompanyId para usuarios PROVIDER
 
     /**
      * Lee storage seguro y emite el estado inicial (+ auto-login si procede)

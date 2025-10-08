@@ -40,6 +40,42 @@
     <string name="error_server">Error del servidor. Intenta más tarde.</string>
     <string name="error_unknown">Ocurrió un error inesperado.</string>
 
+    <!-- Navigation -->
+    <string name="nav_home">Inicio</string>
+    <string name="nav_quotes">Cotizaciones</string>
+    <string name="nav_make_request">Solicitar</string>
+    <string name="nav_requests">Solicitudes</string>
+    <string name="nav_geolocation">Rutas</string>
+    <string name="nav_chat">Chat</string>
+    <string name="nav_profile">Perfil</string>
+
+    <!-- Home -->
+    <string name="home_greeting_client">¡Hola, Cliente!</string>
+    <string name="home_greeting_provider">¡Hola, Proveedor!</string>
+    <string name="home_welcome_message">Bienvenido a Red Carga</string>
+    <string name="home_welcome">Bienvenido!</string>
+    
+    <!-- Provider Home -->
+    <string name="provider_home_active_deals">Últimos tratos activos</string>
+    <string name="provider_home_company">Empresa 1\nSolicitud!</string>
+    <string name="provider_home_see_more">ver más</string>
+    <string name="provider_home_actions">Acciones</string>
+    <string name="provider_home_manage_routes">Administrar\nRutas</string>
+    <string name="provider_home_manage_drivers">Administrar\nconductores</string>
+    <string name="provider_home_manage_fleet">Administrar\nFlotas</string>
+    <string name="provider_home_your_routes">Tus Rutas</string>
+    <string name="provider_home_route_origin">La Molina, Lima</string>
+    <string name="provider_home_route_destination">La Victoria, Chiclayo</string>
+    <string name="provider_home_view_route">Ver ruta</string>
+    <string name="provider_home_your_drivers">Tus Conductores</string>
+    <string name="provider_home_driver_name">Juan Pérez</string>
+    <string name="provider_home_driver_dni">DNI: 12345789</string>
+    <string name="provider_home_view_drivers">Ver conductores</string>
+    <string name="provider_home_your_fleet">Tus Flotas</string>
+    <string name="provider_home_vehicle_name">Camión</string>
+    <string name="provider_home_vehicle_plate">PLACA: 123-BTW</string>
+    <string name="provider_home_view_fleet">Ver flotas</string>
+
     <string name="choose_account_title">¿Cómo deseas usar Red Carga?</string>
     <string name="account_type_client">SOY CLIENTE</string>
     <string name="account_type_client_desc">Necesito transportar carga</string>
@@ -156,4 +192,85 @@
     <string name="screen_title_profile">Perfil</string>
     <string name="screen_title_fleet">Administrar Flotas</string>
     <string name="screen_title_routes">Administrar Rutas</string>
+    
+    <!-- Routes Management -->
+    <string name="routes_title">Rutas</string>
+    <string name="routes_add_button">Agregar Rutas</string>
+    <string name="routes_filter_all">Todas</string>
+    <string name="routes_filter_type">Tipo</string>
+    <string name="routes_filter_department">Departamento</string>
+    <string name="routes_filter_status">Estado</string>
+    <string name="routes_type_pp">PP</string>
+    <string name="routes_type_dd">DD</string>
+    <string name="routes_origin">Origen:</string>
+    <string name="routes_stop">Parada:</string>
+    <string name="routes_destination">Destino:</string>
+    <string name="routes_active">Activa</string>
+    <string name="routes_inactive">Inactiva</string>
+    <string name="routes_empty">No hay rutas registradas</string>
+    <string name="routes_empty_subtitle">Agrega tu primera ruta para comenzar</string>
+    
+    <!-- Create Route Dialog -->
+    <string name="create_route_title">Crear Ruta</string>
+    <string name="edit_route_title">Editar Ruta</string>
+    <string name="route_type_label">Tipo de Ruta</string>
+    <string name="route_origin_dept_label">Departamento</string>
+    <string name="route_origin_prov_label">Provincia</string>
+    <string name="route_origin_dist_label">Distrito</string>
+    <string name="route_destination_dept_label">Departamento</string>
+    <string name="route_destination_prov_label">Provincia</string>
+    <string name="route_destination_dist_label">Distrito</string>
+    <string name="route_stop_dept_label">Departamento (Parada)</string>
+    <string name="route_stop_prov_label">Provincia (Parada)</string>
+    <string name="route_stop_dist_label">Distrito (Parada)</string>
+    <string name="route_create_button">Crear</string>
+    <string name="route_update_button">Actualizar</string>
+    <string name="route_delete_button">Eliminar</string>
+    <string name="route_delete_confirm_title">¿Eliminar ruta?</string>
+    <string name="route_delete_confirm_message">Esta acción no se puede deshacer</string>
+    
+    <!-- Geo locations -->
+    <string name="geo_select_department">Selecciona departamento</string>
+    <string name="geo_select_province">Selecciona provincia</string>
+    <string name="geo_select_district">Selecciona distrito</string>
+
+    <!-- Drivers Management -->
+    <string name="drivers_title">Conductores</string>
+    <string name="drivers_your">Tus Conductores</string>
+    <string name="drivers_add_button">Agregar Conductor</string>
+    <string name="drivers_empty">Sin conductores registrados</string>
+    <string name="drivers_empty_subtitle">Presiona el botón para agregar uno</string>
+    <string name="drivers_create_title">Crear Conductor</string>
+    <string name="drivers_edit_title">Editar Conductor</string>
+    <string name="drivers_created">Conductor creado</string>
+    <string name="drivers_updated">Conductor actualizado</string>
+    <string name="drivers_deleted">Conductor eliminado</string>
+    <string name="drivers_license_label">Licencia: %1$s</string>
+    <string name="drivers_card_email_label">Email</string>
+    <string name="drivers_card_phone_label">Teléfono</string>
+    <string name="drivers_active">Activo</string>
+    <string name="drivers_inactive">Inactivo</string>
+    <string name="drivers_section_personal">Información Personal</string>
+    <string name="drivers_first_name">Nombre</string>
+    <string name="drivers_last_name">Apellido</string>
+    <string name="drivers_section_contact">Contacto</string>
+    <string name="drivers_email">Email</string>
+    <string name="drivers_phone">Teléfono</string>
+    <string name="drivers_license_number">Número de Licencia</string>
+    <string name="drivers_active_label">Conductor Activo</string>
+    <string name="drivers_save_button">Guardar Conductor</string>
+    <string name="common_refresh">Actualizar</string>
+
+    <!-- Vehicles Management -->
+    <string name="vehicles_title">Vehículos</string>
+    <string name="vehicles_your">Tus Vehículos</string>
+    <string name="vehicles_add_button">Agregar Vehículo</string>
+    <string name="vehicles_empty">Sin vehículos registrados</string>
+    <string name="vehicles_created">Vehículo creado</string>
+    <string name="vehicles_updated">Vehículo actualizado</string>
+    <string name="vehicles_deleted">Vehículo eliminado</string>
+    <string name="vehicles_name">Nombre</string>
+    <string name="vehicles_plate">Placa</string>
+    <string name="vehicles_active">Activo</string>
+    <string name="vehicles_inactive">Inactivo</string>
 </resources>

@@ -21,5 +21,6 @@ data class AccountLightDto(
     val username: String,
     val email: String,
     val emailVerified: Boolean,
-    val updatedAt: Long
+    val updatedAt: Long,
+    val companyId: Long? = null  // Solo presente para PROVIDER
 )

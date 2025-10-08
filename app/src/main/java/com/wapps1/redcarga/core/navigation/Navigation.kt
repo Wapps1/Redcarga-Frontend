@@ -22,9 +22,6 @@ import com.wapps1.redcarga.core.navigation.graphs.authNavGraph
 import com.wapps1.redcarga.core.navigation.graphs.mainNavGraph
 import com.wapps1.redcarga.core.session.AuthSessionStore
 import com.wapps1.redcarga.core.session.SessionState
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 @Composable
 fun Navigation(
@@ -85,29 +82,11 @@ fun Navigation(
             ) + fadeOut(animationSpec = tween(300))
         }
         ) {
-        authNavGraph(
-            navController = navController,
-            store = store,
-            onNavigateToMain = {
-                // no-op: la navegación se hará en LaunchedEffect(sessionState, userType)
-            }
-        )
+        authNavGraph(navController = navController)
         
         // Solo carga mainNavGraph si hay userType válido
         userType?.let { type ->
-            mainNavGraph(
-                navController = navController,
-                userType = type,
-                onLogout = {
-                    // Limpia y vuelve a Auth
-                    CoroutineScope(Dispatchers.Main).launch {
-                        store.logout()
-                        navController.navigate(NavGraph.Auth.route) {
-                            popUpTo(0) { inclusive = true }
-                        }
-                    }
-                }
-            )
+            mainNavGraph(userType = type)
         }
         }
 

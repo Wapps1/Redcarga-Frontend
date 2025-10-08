@@ -23,10 +23,22 @@ fun RcDropdown(
     label: String,
     options: List<String>,
     modifier: Modifier = Modifier,
+    displayNames: List<String>? = null,
     leadingIcon: ImageVector? = null,
     enabled: Boolean = true
 ) {
     var expanded by remember { mutableStateOf(false) }
+
+    // Use displayNames if provided, otherwise use options
+    val itemLabels = displayNames ?: options
+
+    // Find the display name for the current value
+    val displayValue = if (displayNames != null && options.contains(value)) {
+        val index = options.indexOf(value)
+        if (index >= 0 && index < displayNames.size) displayNames[index] else value
+    } else {
+        value
+    }
 
     ExposedDropdownMenuBox(
         expanded = expanded,
@@ -34,7 +46,7 @@ fun RcDropdown(
         modifier = modifier
     ) {
         TextField(
-            value = value,
+            value = displayValue,
             onValueChange = {},
             readOnly = true,
             label = { Text(label) },
@@ -59,7 +71,7 @@ fun RcDropdown(
             ),
             modifier = Modifier
                 .fillMaxWidth()
-                .menuAnchor()
+                .menuAnchor(MenuAnchorType.PrimaryNotEditable, enabled)
                 .border(
                     width = 2.dp,
                     color = RcColor2.copy(alpha = 0.3f),
@@ -73,9 +85,10 @@ fun RcDropdown(
             modifier = Modifier
                 .exposedDropdownSize()
         ) {
-            options.forEach { option ->
+            options.forEachIndexed { index, option ->
+                val displayName = if (index < itemLabels.size) itemLabels[index] else option
                 DropdownMenuItem(
-                    text = { Text(option, color = RcColor6) },
+                    text = { Text(displayName, color = RcColor6) },
                     onClick = {
                         onValueChange(option)
                         expanded = false

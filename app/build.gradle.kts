@@ -62,6 +62,10 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.material.icons.extended)
     
+    // Icons
+    implementation(libs.compose.icons.font.awesome)
+    implementation(libs.compose.icons.feather)
+    
     implementation(libs.androidx.navigation.compose)
     
     implementation(libs.kotlinx.coroutines.core)

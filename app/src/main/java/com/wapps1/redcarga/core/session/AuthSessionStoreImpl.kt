@@ -36,6 +36,9 @@ class AuthSessionStoreImpl @Inject constructor(
     private val _currentUserType = MutableStateFlow<UserType?>(null)
     override val currentUserType: StateFlow<UserType?> = _currentUserType.asStateFlow()
 
+    private val _currentCompanyId = MutableStateFlow<Long?>(null)
+    override val currentCompanyId: StateFlow<Long?> = _currentCompanyId.asStateFlow()
+
     // ---- helpers
     private fun List<RoleCode>.toUserType(): UserType? = when {
         isEmpty() -> null
@@ -51,15 +54,18 @@ class AuthSessionStoreImpl @Inject constructor(
         if (app != null && !isExpired(app.expiresAt)) {
             _sessionState.value = SessionState.AppSignedIn(app)
             _currentUserType.value = app.roles.toUserType()
+            _currentCompanyId.value = app.companyId
             return
         }
         val fb = secure.getFirebaseSession()
         if (fb != null && !isExpired(fb.expiresAt)) {
             _sessionState.value = SessionState.FirebaseOnly(fb)
             _currentUserType.value = null
+            _currentCompanyId.value = null
         } else {
             _sessionState.value = SessionState.SignedOut
             _currentUserType.value = null
+            _currentCompanyId.value = null
         }
     }
 
@@ -89,6 +95,7 @@ class AuthSessionStoreImpl @Inject constructor(
         secure.saveFirebaseSession(session)
         _sessionState.value = SessionState.FirebaseOnly(session)
         _currentUserType.value = null
+        _currentCompanyId.value = null
     }
 
     override suspend fun tryAppLogin(platform: Platform, ip: String) {
@@ -100,6 +107,7 @@ class AuthSessionStoreImpl @Inject constructor(
 
         _sessionState.value = SessionState.AppSignedIn(app)
         _currentUserType.value = app.roles.toUserType()
+        _currentCompanyId.value = app.companyId
     }
 
     override suspend fun logout() {
@@ -108,5 +116,6 @@ class AuthSessionStoreImpl @Inject constructor(
         local.clearAllAuthData()
         _sessionState.value = SessionState.SignedOut
         _currentUserType.value = null
+        _currentCompanyId.value = null
     }
 }
