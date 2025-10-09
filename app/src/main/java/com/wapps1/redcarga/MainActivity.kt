@@ -20,7 +20,7 @@ class MainActivity : ComponentActivity() {
     lateinit var authSessionStore: AuthSessionStore
     
     override fun attachBaseContext(newBase: Context) {
-        super.attachBaseContext(LocaleHelper.setLocale(newBase, "es"))
+        super.attachBaseContext(LocaleHelper.setLocale(newBase, "en"))
     }
     
     override fun onCreate(savedInstanceState: Bundle?) {

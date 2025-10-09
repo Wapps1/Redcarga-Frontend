@@ -52,7 +52,7 @@ fun RoutesManagement(
             TopAppBar(
                 title = { 
                     Text(
-                        text = "Rutas",
+                        text = stringResource(R.string.routes_title),
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp,
                         color = RcColor6
@@ -62,7 +62,7 @@ fun RoutesManagement(
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Volver",
+                            contentDescription = stringResource(R.string.common_back),
                             tint = RcColor6
                         )
                     }
@@ -86,7 +86,7 @@ fun RoutesManagement(
                         IconButton(onClick = { showFiltersDialog = true }) {
                             Icon(
                                 imageVector = Icons.Default.FilterList,
-                                contentDescription = "Filtros",
+                                contentDescription = stringResource(R.string.routes_filters_title),
                                 tint = if (ui.hasActiveFilters) RcColor5 else RcColor6
                             )
                         }
@@ -95,7 +95,7 @@ fun RoutesManagement(
                     IconButton(onClick = { vm.onRefresh() }, enabled = !ui.isRefreshing) {
                         Icon(
                             imageVector = Icons.Default.Refresh, 
-                            contentDescription = "Actualizar",
+                            contentDescription = stringResource(R.string.common_refresh),
                             tint = if (ui.isRefreshing) RcColor8 else RcColor5
                         )
                     }
@@ -120,7 +120,7 @@ fun RoutesManagement(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Tus Rutas",
+                    text = stringResource(R.string.routes_your),
                     fontSize = 19.sp,
                     fontWeight = FontWeight.Bold,
                     color = RcColor6
@@ -144,7 +144,7 @@ fun RoutesManagement(
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "Agregar Ruta",
+                        text = stringResource(R.string.routes_add_button),
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
                         color = White
@@ -178,14 +178,14 @@ fun RoutesManagement(
                             )
                             Spacer(Modifier.height(8.dp))
                             Text(
-                                text = "Sin rutas registradas",
+                                text = stringResource(R.string.routes_empty),
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Medium,
                                 color = RcColor8
                             )
                             Spacer(Modifier.height(4.dp))
                             Text(
-                                text = "Presiona el botón para agregar una",
+                                text = stringResource(R.string.routes_empty_subtitle),
                                 fontSize = 12.sp,
                                 color = RcColor8.copy(alpha = 0.7f)
                             )
@@ -219,7 +219,7 @@ fun RoutesManagement(
 
     if (showCreateDialog) {
         RouteUpsertDialog(
-            title = "Crear Ruta",
+            title = stringResource(R.string.routes_create_title),
             initial = UpsertFormUi(),
             onDismiss = { showCreateDialog = false },
             onConfirm = { f ->
@@ -288,7 +288,7 @@ private fun RouteItemCard(
                     shadowElevation = 1.dp
                 ) {
                     Text(
-                        text = if (type == RouteType.PP) "Provincia a Provincia" else "Departamento a Departamento",
+                        text = if (type == RouteType.PP) stringResource(R.string.routes_type_pp) else stringResource(R.string.routes_type_dd),
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold,
@@ -301,7 +301,7 @@ private fun RouteItemCard(
                     IconButton(onClick = { showMenu = true }) {
                         Icon(
                             imageVector = Icons.Default.MoreVert,
-                            contentDescription = "Opciones",
+                            contentDescription = stringResource(R.string.routes_menu_options),
                             tint = RcColor6
                         )
                     }
@@ -310,14 +310,14 @@ private fun RouteItemCard(
                         onDismissRequest = { showMenu = false }
                     ) {
                         DropdownMenuItem(
-                            text = { Text("Editar", color = RcColor6, fontWeight = FontWeight.Medium) },
+                            text = { Text(stringResource(R.string.routes_menu_edit), color = RcColor6, fontWeight = FontWeight.Medium) },
                             onClick = {
                                 showMenu = false
                                 onEdit()
                             }
                         )
                         DropdownMenuItem(
-                            text = { Text("Eliminar", color = RcColor5, fontWeight = FontWeight.Bold) },
+                            text = { Text(stringResource(R.string.routes_menu_delete), color = RcColor5, fontWeight = FontWeight.Bold) },
                             onClick = {
                                 showMenu = false
                                 onDelete()
@@ -351,7 +351,7 @@ private fun RouteItemCard(
                     Spacer(modifier = Modifier.width(8.dp))
                     Column {
                         Text(
-                            text = "Origen",
+                            text = stringResource(R.string.routes_origin),
                             fontSize = 10.sp,
                             color = RcColor8,
                             fontWeight = FontWeight.Medium
@@ -391,7 +391,7 @@ private fun RouteItemCard(
                     Spacer(modifier = Modifier.width(8.dp))
                     Column {
                         Text(
-                            text = "Destino",
+                            text = stringResource(R.string.routes_destination),
                             fontSize = 10.sp,
                             color = RcColor8,
                             fontWeight = FontWeight.Medium
@@ -434,7 +434,7 @@ private fun RouteItemCard(
                         )
                         Spacer(modifier = Modifier.width(5.dp))
                         Text(
-                            text = if (active) "Activa" else "Inactiva",
+                            text = if (active) stringResource(R.string.routes_active) else stringResource(R.string.routes_inactive),
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
                             color = if (active) White else RcColor8
@@ -540,7 +540,7 @@ private fun RouteUpsertDialog(
                         CircularProgressIndicator(color = RcColor5, strokeWidth = 2.dp, modifier = Modifier.size(30.dp))
                         Spacer(Modifier.height(10.dp))
                         Text(
-                            "Cargando catálogo…",
+                            stringResource(R.string.routes_loading_catalog),
                             color = RcColor8,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium
@@ -557,7 +557,7 @@ private fun RouteUpsertDialog(
                     // Tipo con chips elegantes
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Text(
-                            "Tipo de Ruta",
+                            stringResource(R.string.routes_type_label),
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             color = RcColor6,
@@ -572,7 +572,7 @@ private fun RouteUpsertDialog(
                                 onClick = { form = form.copy(type = RouteType.DD, originProvCode = "", destProvCode = "") },
                                 label = { 
                                     Text(
-                                        "Depto → Depto",
+                                        stringResource(R.string.routes_type_dd_short),
                                         fontSize = 11.sp,
                                         fontWeight = if (form.type == RouteType.DD) FontWeight.Bold else FontWeight.Medium
                                     )
@@ -596,7 +596,7 @@ private fun RouteUpsertDialog(
                                 onClick = { form = form.copy(type = RouteType.PP) },
                                 label = { 
                                     Text(
-                                        "Prov → Prov",
+                                        stringResource(R.string.routes_type_pp_short),
                                         fontSize = 11.sp,
                                         fontWeight = if (form.type == RouteType.PP) FontWeight.Bold else FontWeight.Medium
                                     )
@@ -632,7 +632,7 @@ private fun RouteUpsertDialog(
                                 Text("📍", fontSize = 14.sp)
                                 Spacer(Modifier.width(5.dp))
                                 Text(
-                                    "Origen",
+                                    stringResource(R.string.routes_origin_label),
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = RcColor5
@@ -640,7 +640,7 @@ private fun RouteUpsertDialog(
                             }
                             
                             ElegantSelectField(
-                                label = "Departamento",
+                                label = stringResource(R.string.routes_department_label),
                                 options = ui.departments.map { it.name to it.code },
                                 selectedCode = form.originDeptCode,
                                 onSelected = { code -> form = form.copy(originDeptCode = code, originProvCode = "") }
@@ -648,12 +648,12 @@ private fun RouteUpsertDialog(
                             
                             if (!isDD) {
                                 ElegantSelectField(
-                                    label = "Provincia",
+                                    label = stringResource(R.string.routes_province_label),
                                     options = originProvList.map { it.name to it.code },
                                     enabled = form.originDeptCode.isNotBlank(),
                                     selectedCode = form.originProvCode,
                                     onSelected = { code -> form = form.copy(originProvCode = code) },
-                                    helperText = if (form.originDeptCode.isBlank()) "Seleccione departamento primero" else null
+                                    helperText = if (form.originDeptCode.isBlank()) stringResource(R.string.routes_select_department_first) else null
                                 )
                             }
                         }
@@ -673,7 +673,7 @@ private fun RouteUpsertDialog(
                                 Text("🎯", fontSize = 14.sp)
                                 Spacer(Modifier.width(5.dp))
                                 Text(
-                                    "Destino",
+                                    stringResource(R.string.routes_destination_label),
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = RcColor4
@@ -681,7 +681,7 @@ private fun RouteUpsertDialog(
                             }
                             
                             ElegantSelectField(
-                                label = "Departamento",
+                                label = stringResource(R.string.routes_department_label),
                                 options = ui.departments.map { it.name to it.code },
                                 selectedCode = form.destDeptCode,
                                 onSelected = { code -> form = form.copy(destDeptCode = code, destProvCode = "") }
@@ -689,12 +689,12 @@ private fun RouteUpsertDialog(
                             
                             if (!isDD) {
                                 ElegantSelectField(
-                                    label = "Provincia",
+                                    label = stringResource(R.string.routes_province_label),
                                     options = destProvList.map { it.name to it.code },
                                     enabled = form.destDeptCode.isNotBlank(),
                                     selectedCode = form.destProvCode,
                                     onSelected = { code -> form = form.copy(destProvCode = code) },
-                                    helperText = if (form.destDeptCode.isBlank()) "Seleccione departamento primero" else null
+                                    helperText = if (form.destDeptCode.isBlank()) stringResource(R.string.routes_select_department_first) else null
                                 )
                             }
                         }
@@ -727,7 +727,7 @@ private fun RouteUpsertDialog(
                                 )
                                 Spacer(Modifier.width(6.dp))
                                 Text(
-                                    "Ruta Activa",
+                                    stringResource(R.string.routes_active_label),
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = RcColor6
@@ -770,7 +770,7 @@ private fun RouteUpsertDialog(
                     Spacer(Modifier.width(6.dp))
                 }
                 Text(
-                    "Guardar Ruta",
+                    stringResource(R.string.routes_save_button),
                     fontWeight = FontWeight.Bold,
                     fontSize = 12.sp
                 )
@@ -784,7 +784,7 @@ private fun RouteUpsertDialog(
                 contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp)
             ) {
                 Text(
-                    "Cancelar",
+                    stringResource(R.string.common_cancel),
                     color = RcColor8,
                     fontWeight = FontWeight.Bold,
                     fontSize = 12.sp
@@ -828,7 +828,7 @@ private fun RouteEditDialog(routeId: Long, vm: RoutesManagementViewModel, onDism
             onDismissRequest = onDismiss,
             title = {
                 Text(
-                    "Editar Ruta",
+                    stringResource(R.string.routes_edit_title),
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp,
                     color = RcColor6
@@ -845,13 +845,14 @@ private fun RouteEditDialog(routeId: Long, vm: RoutesManagementViewModel, onDism
             confirmButton = {},
             dismissButton = {
                 TextButton(onClick = onDismiss) {
-                    Text("Cerrar", color = RcColor8, fontWeight = FontWeight.Medium)
+                    Text(stringResource(R.string.common_close), color = RcColor8, fontWeight = FontWeight.Medium)
+
                 }
             },
             shape = RoundedCornerShape(20.dp)
         )
     } else {
-        RouteUpsertDialog(title = "Editar Ruta", initial = initial, onDismiss = onDismiss) { f ->
+        RouteUpsertDialog(title = stringResource(R.string.routes_edit_title), initial = initial, onDismiss = onDismiss) { f ->
             vm.onUpdate(
                 routeId = routeId,
                 type = f.type,
@@ -972,7 +973,7 @@ private fun FiltersDialog(
         title = {
             Column {
                 Text(
-                    "Filtros de Rutas",
+                    stringResource(R.string.routes_filters_title),
                     fontWeight = FontWeight.ExtraBold,
                     fontSize = 16.sp,
                     color = RcColor6
@@ -996,7 +997,7 @@ private fun FiltersDialog(
                 // Filtro por tipo
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(
-                        "Tipo de Ruta",
+                        stringResource(R.string.routes_filters_type),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         color = RcColor6,
@@ -1009,7 +1010,7 @@ private fun FiltersDialog(
                         FilterChip(
                             selected = filters.type == null,
                             onClick = { filters = filters.copy(type = null) },
-                            label = { Text("Todas", fontSize = 11.sp, fontWeight = if (filters.type == null) FontWeight.Bold else FontWeight.Medium) },
+                            label = { Text(stringResource(R.string.routes_filters_all), fontSize = 11.sp, fontWeight = if (filters.type == null) FontWeight.Bold else FontWeight.Medium) },
                             colors = FilterChipDefaults.filterChipColors(
                                 selectedContainerColor = RcColor6,
                                 selectedLabelColor = White,
@@ -1048,7 +1049,7 @@ private fun FiltersDialog(
                 // Filtro por estado
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(
-                        "Estado",
+                        stringResource(R.string.routes_filters_status),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         color = RcColor6,
@@ -1061,7 +1062,7 @@ private fun FiltersDialog(
                         FilterChip(
                             selected = filters.activeOnly == null,
                             onClick = { filters = filters.copy(activeOnly = null) },
-                            label = { Text("Todas", fontSize = 11.sp, fontWeight = if (filters.activeOnly == null) FontWeight.Bold else FontWeight.Medium) },
+                            label = { Text(stringResource(R.string.routes_filters_all), fontSize = 11.sp, fontWeight = if (filters.activeOnly == null) FontWeight.Bold else FontWeight.Medium) },
                             colors = FilterChipDefaults.filterChipColors(
                                 selectedContainerColor = RcColor6,
                                 selectedLabelColor = White,
@@ -1073,7 +1074,7 @@ private fun FiltersDialog(
                         FilterChip(
                             selected = filters.activeOnly == true,
                             onClick = { filters = filters.copy(activeOnly = true) },
-                            label = { Text("Activas", fontSize = 11.sp, fontWeight = if (filters.activeOnly == true) FontWeight.Bold else FontWeight.Medium) },
+                            label = { Text(stringResource(R.string.routes_filters_active), fontSize = 11.sp, fontWeight = if (filters.activeOnly == true) FontWeight.Bold else FontWeight.Medium) },
                             colors = FilterChipDefaults.filterChipColors(
                                 selectedContainerColor = Color(0xFF4CAF50),
                                 selectedLabelColor = White,
@@ -1085,7 +1086,7 @@ private fun FiltersDialog(
                         FilterChip(
                             selected = filters.activeOnly == false,
                             onClick = { filters = filters.copy(activeOnly = false) },
-                            label = { Text("Inactivas", fontSize = 11.sp, fontWeight = if (filters.activeOnly == false) FontWeight.Bold else FontWeight.Medium) },
+                            label = { Text(stringResource(R.string.routes_filters_inactive), fontSize = 11.sp, fontWeight = if (filters.activeOnly == false) FontWeight.Bold else FontWeight.Medium) },
                             colors = FilterChipDefaults.filterChipColors(
                                 selectedContainerColor = RcColor8,
                                 selectedLabelColor = White,
@@ -1116,7 +1117,7 @@ private fun FiltersDialog(
                                 Text("📍", fontSize = 14.sp)
                                 Spacer(Modifier.width(5.dp))
                                 Text(
-                                    "Filtrar por Origen",
+                                    stringResource(R.string.routes_filters_origin),
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = RcColor5
@@ -1127,13 +1128,13 @@ private fun FiltersDialog(
                                     onClick = { filters = filters.copy(originDeptCode = null, originProvCode = null) },
                                     contentPadding = PaddingValues(horizontal = 6.dp, vertical = 3.dp)
                                 ) {
-                                    Text("Limpiar", fontSize = 10.sp, color = RcColor5, fontWeight = FontWeight.Bold)
+                                    Text(stringResource(R.string.routes_filters_clear_section), fontSize = 10.sp, color = RcColor5, fontWeight = FontWeight.Bold)
                                 }
                             }
                         }
                         
                         ElegantSelectField(
-                            label = "Departamento",
+                            label = stringResource(R.string.routes_department_label),
                             options = listOf("" to "") + departments.map { it.name to it.code },
                             selectedCode = filters.originDeptCode ?: "",
                             onSelected = { code -> 
@@ -1147,7 +1148,7 @@ private fun FiltersDialog(
                         
                         if (filters.originDeptCode != null) {
                             ElegantSelectField(
-                                label = "Provincia (opcional)",
+                                label = stringResource(R.string.routes_province_optional),
                                 options = listOf("" to "") + originProvList.map { it.name to it.code },
                                 selectedCode = filters.originProvCode ?: "",
                                 onSelected = { code -> 
@@ -1177,7 +1178,7 @@ private fun FiltersDialog(
                                 Text("🎯", fontSize = 14.sp)
                                 Spacer(Modifier.width(5.dp))
                                 Text(
-                                    "Filtrar por Destino",
+                                    stringResource(R.string.routes_filters_destination),
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = RcColor4
@@ -1188,13 +1189,13 @@ private fun FiltersDialog(
                                     onClick = { filters = filters.copy(destDeptCode = null, destProvCode = null) },
                                     contentPadding = PaddingValues(horizontal = 6.dp, vertical = 3.dp)
                                 ) {
-                                    Text("Limpiar", fontSize = 10.sp, color = RcColor4, fontWeight = FontWeight.Bold)
+                                    Text(stringResource(R.string.routes_filters_clear_section), fontSize = 10.sp, color = RcColor4, fontWeight = FontWeight.Bold)
                                 }
                             }
                         }
                         
                         ElegantSelectField(
-                            label = "Departamento",
+                            label = stringResource(R.string.routes_department_label),
                             options = listOf("" to "") + departments.map { it.name to it.code },
                             selectedCode = filters.destDeptCode ?: "",
                             onSelected = { code -> 
@@ -1208,7 +1209,7 @@ private fun FiltersDialog(
                         
                         if (filters.destDeptCode != null) {
                             ElegantSelectField(
-                                label = "Provincia (opcional)",
+                                label = stringResource(R.string.routes_province_optional),
                                 options = listOf("" to "") + destProvList.map { it.name to it.code },
                                 selectedCode = filters.destProvCode ?: "",
                                 onSelected = { code -> 
@@ -1233,7 +1234,7 @@ private fun FiltersDialog(
                 contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
             ) {
                 Text(
-                    "Aplicar Filtros",
+                    stringResource(R.string.routes_filters_apply),
                     fontWeight = FontWeight.Bold,
                     fontSize = 12.sp
                 )
@@ -1252,7 +1253,7 @@ private fun FiltersDialog(
                     contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp)
                 ) {
                     Text(
-                        "Limpiar Todo",
+                        stringResource(R.string.routes_filters_clear),
                         color = RcColor8,
                         fontWeight = FontWeight.Bold,
                         fontSize = 12.sp
@@ -1265,7 +1266,7 @@ private fun FiltersDialog(
                     contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp)
                 ) {
                     Text(
-                        "Cancelar",
+                        stringResource(R.string.common_cancel),
                         color = RcColor6,
                         fontWeight = FontWeight.Bold,
                         fontSize = 12.sp

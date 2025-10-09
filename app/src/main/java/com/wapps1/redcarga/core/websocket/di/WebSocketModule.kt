@@ -1,0 +1,22 @@
+package com.wapps1.redcarga.core.websocket.di
+
+import com.wapps1.redcarga.core.websocket.RedcargaWebSocketManager
+import dagger.Module
+import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
+
+/**
+ * Módulo de Dagger Hilt para WebSocket
+ */
+@Module
+@InstallIn(SingletonComponent::class)
+object WebSocketModule {
+    
+    @Provides
+    @Singleton
+    fun provideRedcargaWebSocketManager(): RedcargaWebSocketManager {
+        return RedcargaWebSocketManager()
+    }
+}

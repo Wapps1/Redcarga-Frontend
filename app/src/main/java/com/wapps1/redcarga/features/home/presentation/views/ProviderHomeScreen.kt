@@ -6,35 +6,49 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wapps1.redcarga.R
+import com.wapps1.redcarga.core.session.AuthSessionStore
+import com.wapps1.redcarga.core.session.AuthSessionStoreEntryPoint
 import com.wapps1.redcarga.core.ui.theme.*
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.Truck
 import compose.icons.fontawesomeicons.solid.Route
 import compose.icons.fontawesomeicons.solid.UserTie
+import dagger.hilt.android.EntryPointAccessors
+import kotlinx.coroutines.launch
 
-/**
- * Pantalla de inicio para Proveedor
- * Muestra resumen de tratos activos, acciones rápidas y resumen de recursos (rutas, conductores, flotas)
- * Diseño mejorado con colores que contrastan hermosamente
- */
+
 @Composable
 fun ProviderHomeScreen(
     onNavigateToRoutes: () -> Unit = {},
     onNavigateToDrivers: () -> Unit = {},
     onNavigateToFleet: () -> Unit = {}
 ) {
+    val context = LocalContext.current
+    val authStore = remember {
+        EntryPointAccessors.fromApplication(
+            context.applicationContext,
+            AuthSessionStoreEntryPoint::class.java
+        ).authSessionStore()
+    }
+    val scope = rememberCoroutineScope()
+    
+    // Observar el username del usuario
+    val username by authStore.currentUsername.collectAsState()
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -42,14 +56,53 @@ fun ProviderHomeScreen(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
-        // Saludo de bienvenida
+        // Header con saludo y botón de logout
         item {
-            Text(
-                text = stringResource(R.string.home_welcome),
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Bold,
-                color = RcColor6 // Negro oscuro para contraste
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(R.string.home_greeting_provider, username ?: "Usuario"),
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = RcColor6 // Negro oscuro para contraste
+                )
+
+                // Botón de logout compacto y elegante
+                Surface(
+                    onClick = {
+                        scope.launch {
+                            authStore.logout()
+                        }
+                    },
+                    shape = RoundedCornerShape(12.dp),
+                    color = RcColor5,
+                    shadowElevation = 2.dp,
+                    modifier = Modifier.height(40.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ExitToApp,
+                            contentDescription = null,
+                            tint = White,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = stringResource(R.string.common_logout),
+                            color = White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 12.sp
+                        )
+                    }
+                }
+            }
         }
 
         // Sección: Últimos tratos activos
