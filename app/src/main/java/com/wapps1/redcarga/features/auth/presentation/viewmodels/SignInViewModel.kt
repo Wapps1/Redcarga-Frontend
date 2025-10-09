@@ -1,5 +1,6 @@
 package com.wapps1.redcarga.features.auth.presentation.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -43,10 +44,27 @@ class SignInViewModel @Inject constructor(
         viewModelScope.launch {
             _ui.update { it.copy(loading = true, error = null) }
             runCatching {
+                Log.d("SignInViewModel", "🚀 Iniciando login completo...")
+                Log.d("SignInViewModel", "📧 Email: ${s.email}")
+
+                // Paso 1: Firebase login
+                Log.d("SignInViewModel", "🔥 Paso 1: Firebase login")
                 store.signInManually(Email(s.email), Password(s.password), platform, ip)
+                Log.d("SignInViewModel", "✅ Firebase login exitoso")
+
+                // Paso 2: Backend login + WebSocket connection
+                Log.d("SignInViewModel", "🌐 Paso 2: Backend login + WebSocket")
+                store.tryAppLogin(platform, ip)
+                Log.d("SignInViewModel", "✅ Backend login + WebSocket exitoso")
+
+                // Paso 3: Navegar a Home
+                Log.d("SignInViewModel", "🏠 Paso 3: Navegando a Home")
                 _effect.emit(Effect.NavigateToMain)
+                Log.d("SignInViewModel", "✅ Login completo exitoso")
+
             }.onFailure { e ->
-                _ui.update { it.copy(error = e.message ?: "Error") }
+                Log.e("SignInViewModel", "❌ Error en login:", e)
+                _ui.update { it.copy(error = e.message ?: "Error en el login") }
             }
             _ui.update { it.copy(loading = false) }
         }

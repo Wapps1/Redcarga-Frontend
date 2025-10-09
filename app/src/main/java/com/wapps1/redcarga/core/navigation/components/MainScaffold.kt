@@ -12,6 +12,8 @@ import com.wapps1.redcarga.core.navigation.BottomNavItem
 import com.wapps1.redcarga.core.session.UserType
 import com.wapps1.redcarga.features.home.presentation.views.ClientHomeScreen
 import com.wapps1.redcarga.features.home.presentation.views.ProviderHomeScreen
+import com.wapps1.redcarga.features.requests.presentation.views.ClientRequestsScreen
+import com.wapps1.redcarga.features.requests.presentation.views.CreateRequestScreen
 
 /**
  * Scaffold principal con barra de navegación inferior persistente
@@ -53,19 +55,45 @@ fun MainScaffold(
             if (userType == UserType.CLIENT) {
                 // Rutas para Cliente
                 composable(BottomNavItem.ClientHome.route) {
-                    ClientHomeScreen()
+                    ClientHomeScreen(
+                        onNavigateToRequests = {
+                            navController.navigate(BottomNavItem.ClientRequest.route)
+                        },
+                        onNavigateToCreateRequest = {
+                            navController.navigate("client_create_request")
+                        }
+                    )
                 }
                 composable(BottomNavItem.ClientQuotes.route) {
                     PlaceholderScreen(title = "Cotizaciones")
                 }
                 composable(BottomNavItem.ClientRequest.route) {
-                    PlaceholderScreen(title = "Hacer Solicitud")
+                    ClientRequestsScreen(
+                        onNavigateBack = {
+                            navController.popBackStack()
+                        },
+                        onNavigateToCreateRequest = {
+                            navController.navigate("client_create_request")
+                        }
+                    )
                 }
                 composable(BottomNavItem.ClientChat.route) {
                     PlaceholderScreen(title = "Chat")
                 }
                 composable(BottomNavItem.ClientProfile.route) {
                     PlaceholderScreen(title = "Perfil")
+                }
+                
+                // Rutas adicionales para Cliente (fuera del bottom nav)
+                composable("client_create_request") {
+                    CreateRequestScreen(
+                        onBack = {
+                            navController.popBackStack()
+                        },
+                        onSaved = {
+                            navController.popBackStack()
+                        }
+                    )
                 }
             } else {
                 // Rutas para Proveedor

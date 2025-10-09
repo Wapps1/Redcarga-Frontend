@@ -25,6 +25,8 @@ sealed class Route(val route: String) {
 
     // CLIENT ROUTES
     data object ClientRequests : Route("client_requests")
+    data object ClientRequestsList : Route("client_requests_list")
+    data object ClientCreateRequest : Route("client_create_request")
     
     data object ClientQuotes : Route("client_quotes")
     

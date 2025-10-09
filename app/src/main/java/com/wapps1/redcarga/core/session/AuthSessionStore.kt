@@ -15,6 +15,7 @@ interface AuthSessionStore {
     val sessionState: StateFlow<SessionState>
     val currentUserType: StateFlow<UserType?>
     val currentCompanyId: StateFlow<Long?>  // CompanyId para usuarios PROVIDER
+    val currentUsername: StateFlow<String?> // Username del usuario actual
 
     /**
      * Lee storage seguro y emite el estado inicial (+ auto-login si procede)

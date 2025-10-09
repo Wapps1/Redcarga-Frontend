@@ -20,14 +20,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wapps1.redcarga.core.ui.theme.*
 import com.wapps1.redcarga.R
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.delay
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.wapps1.redcarga.features.fleet.presentation.viewmodels.DriversManagementViewModel
 
@@ -55,8 +52,6 @@ fun DriversManagement(
     var editDriverId by remember { mutableStateOf<Long?>(null) }
     var showFilters by remember { mutableStateOf(false) }
     val snackbar = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
-    val ctx = LocalContext.current
 
     LaunchedEffect(Unit) { vm.bootstrap() }
 
@@ -291,7 +286,7 @@ private fun DriverItemCard(
                     IconButton(onClick = { showMenu = true }) {
                         Icon(
                             imageVector = Icons.Default.MoreVert,
-                            contentDescription = "Opciones",
+                            contentDescription = stringResource(R.string.drivers_menu_options),
                             tint = RcColor6
                         )
                     }
@@ -300,14 +295,14 @@ private fun DriverItemCard(
                         onDismissRequest = { showMenu = false }
                     ) {
                         DropdownMenuItem(
-                            text = { Text("Editar", color = RcColor6, fontWeight = FontWeight.Medium) },
+                            text = { Text(stringResource(R.string.drivers_menu_edit), color = RcColor6, fontWeight = FontWeight.Medium) },
                             onClick = {
                                 showMenu = false
                                 onEdit()
                             }
                         )
                         DropdownMenuItem(
-                            text = { Text("Eliminar", color = RcColor5, fontWeight = FontWeight.Bold) },
+                            text = { Text(stringResource(R.string.drivers_menu_delete), color = RcColor5, fontWeight = FontWeight.Bold) },
                             onClick = {
                                 showMenu = false
                                 onDelete()
@@ -721,23 +716,23 @@ private fun DriversFiltersDialog(
         onDismissRequest = onDismiss,
         title = {
             Column {
-                Text("Filtros de Conductores", fontWeight = FontWeight.ExtraBold, fontSize = 16.sp, color = RcColor6)
+                Text(stringResource(R.string.drivers_filters_title), fontWeight = FontWeight.ExtraBold, fontSize = 16.sp, color = RcColor6)
                 Spacer(Modifier.height(2.dp))
                 Box(modifier = Modifier.width(40.dp).height(3.dp)) {}
             }
         },
         text = {
             Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Text("Estado", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = RcColor6)
+                Text(stringResource(R.string.drivers_filters_status), fontSize = 12.sp, fontWeight = FontWeight.Bold, color = RcColor6)
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FilterChip(selected = f.activeOnly == null, onClick = { f = f.copy(activeOnly = null) }, label = { Text("Todos", fontSize = 11.sp) })
-                    FilterChip(selected = f.activeOnly == true, onClick = { f = f.copy(activeOnly = true) }, label = { Text("Activos", fontSize = 11.sp) })
-                    FilterChip(selected = f.activeOnly == false, onClick = { f = f.copy(activeOnly = false) }, label = { Text("Inactivos", fontSize = 11.sp) })
+                    FilterChip(selected = f.activeOnly == null, onClick = { f = f.copy(activeOnly = null) }, label = { Text(stringResource(R.string.drivers_filters_all), fontSize = 11.sp) })
+                    FilterChip(selected = f.activeOnly == true, onClick = { f = f.copy(activeOnly = true) }, label = { Text(stringResource(R.string.drivers_filters_active), fontSize = 11.sp) })
+                    FilterChip(selected = f.activeOnly == false, onClick = { f = f.copy(activeOnly = false) }, label = { Text(stringResource(R.string.drivers_filters_inactive), fontSize = 11.sp) })
                 }
                 OutlinedTextField(
                     value = f.query.orEmpty(),
                     onValueChange = { f = f.copy(query = it) },
-                    label = { Text("Buscar por nombre, email, teléfono o licencia", fontSize = 12.sp) },
+                    label = { Text(stringResource(R.string.drivers_filters_search_hint), fontSize = 12.sp) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(10.dp),
@@ -746,12 +741,12 @@ private fun DriversFiltersDialog(
             }
         },
         confirmButton = {
-            Button(onClick = { onApply(f) }, shape = RoundedCornerShape(8.dp), modifier = Modifier.height(36.dp)) { Text("Aplicar", fontWeight = FontWeight.Bold, fontSize = 12.sp) }
+            Button(onClick = { onApply(f) }, shape = RoundedCornerShape(8.dp), modifier = Modifier.height(36.dp)) { Text(stringResource(R.string.drivers_filters_apply), fontWeight = FontWeight.Bold, fontSize = 12.sp) }
         },
         dismissButton = {
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                TextButton(onClick = onClear, shape = RoundedCornerShape(8.dp), modifier = Modifier.height(36.dp)) { Text("Limpiar", fontSize = 12.sp) }
-                TextButton(onClick = onDismiss, shape = RoundedCornerShape(8.dp), modifier = Modifier.height(36.dp)) { Text("Cancelar", fontSize = 12.sp) }
+                TextButton(onClick = onClear, shape = RoundedCornerShape(8.dp), modifier = Modifier.height(36.dp)) { Text(stringResource(R.string.drivers_filters_clear), fontSize = 12.sp) }
+                TextButton(onClick = onDismiss, shape = RoundedCornerShape(8.dp), modifier = Modifier.height(36.dp)) { Text(stringResource(R.string.common_cancel), fontSize = 12.sp) }
             }
         },
         shape = RoundedCornerShape(16.dp),

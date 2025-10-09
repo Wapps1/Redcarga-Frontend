@@ -20,6 +20,7 @@
     <string name="common_success">Success</string>
     <string name="common_yes">Yes</string>
     <string name="common_no">No</string>
+    <string name="common_add">Add</string>
 
     <string name="validation_required_field">This field is required</string>
     <string name="validation_invalid_email">Invalid email address</string>
@@ -50,11 +51,11 @@
     <string name="nav_profile">Profile</string>
 
     <!-- Home -->
-    <string name="home_greeting_client">Hello, Client!</string>
-    <string name="home_greeting_provider">Hello, Provider!</string>
+    <string name="home_greeting_client">Hi, %1$s!</string>
+    <string name="home_greeting_provider">Hi, %1$s!</string>
     <string name="home_welcome_message">Welcome to Red Carga</string>
     <string name="home_welcome">Welcome!</string>
-    
+
     <!-- Provider Home -->
     <string name="provider_home_active_deals">Latest active deals</string>
     <string name="provider_home_company">Company 1\nRequest!</string>
@@ -75,6 +76,29 @@
     <string name="provider_home_vehicle_name">Truck</string>
     <string name="provider_home_vehicle_plate">PLATE: 123-BTW</string>
     <string name="provider_home_view_fleet">View fleet</string>
+
+    <!-- Client Home -->
+    <string name="client_home_active_deals">Latest active deals</string>
+    <string name="client_home_deal_title">Active\nDeal</string>
+    <string name="client_home_see_more">see more</string>
+    <string name="client_home_actions">Actions</string>
+    <string name="client_home_make_request">Make\nRequest</string>
+    <string name="client_home_view_quotes">View\nQuotes</string>
+    <string name="client_home_track_shipment">Track\nShipment</string>
+    <string name="client_home_your_requests">Your Requests</string>
+    <string name="client_home_request_title">Transport Request</string>
+    <string name="client_home_request_id">#REQ-001</string>
+    <string name="client_home_request_status">Pending</string>
+    <string name="client_home_view_requests">View requests</string>
+    <string name="client_home_your_quotes">Your Quotes</string>
+    <string name="client_home_quote_provider">Transport ABC</string>
+    <string name="client_home_quote_price">Lima → Chiclayo</string>
+    <string name="client_home_quote_amount">$ 250</string>
+    <string name="client_home_your_deals">Your Deals</string>
+    <string name="client_home_deal_provider">Logistics XYZ</string>
+    <string name="client_home_deal_route">Lima → Trujillo</string>
+    <string name="client_home_deal_status">In Progress</string>
+    <string name="client_home_view_deals">View deals</string>
 
     <!-- Choose Account Type -->
     <string name="choose_account_title">How do you want to use Red Carga?</string>
@@ -104,18 +128,18 @@
 
     <!-- Sign Up Client -->
     <string name="signup_client_title">Client Registration</string>
-    
+
     <!-- Step 1: Credentials -->
     <string name="signup_client_step1_title">Create your account</string>
     <string name="signup_client_step1_subtitle">Enter your email and password</string>
     <string name="signup_client_email_label">Email</string>
     <string name="signup_client_password_label">Password</string>
     <string name="signup_client_confirm_password_label">Confirm Password</string>
-    
+
     <!-- Step 2: Email Verification -->
     <string name="signup_client_step2_title">Verify your email</string>
     <string name="signup_client_step2_subtitle">We sent you a verification link. Open it to continue.</string>
-    
+
     <!-- Step 3: Personal Data -->
     <string name="signup_client_step3_title">Complete your profile</string>
     <string name="signup_client_step3_subtitle">Enter your personal information</string>
@@ -128,7 +152,7 @@
     <string name="signup_client_ruc_label">Personal Tax ID</string>
     <string name="signup_client_email_verified">Email verified successfully!</string>
     <string name="signup_client_verify_email_button">Verify Email</string>
-    
+
     <!-- Document Types -->
     <string name="document_type_dni">National ID</string>
     <string name="document_type_passport">Passport</string>
@@ -137,19 +161,19 @@
 
     <!-- Sign Up Provider -->
     <string name="signup_provider_title">Provider Registration</string>
-    
+
     <!-- Step 1: Credentials (same as client) -->
     <string name="signup_provider_step1_title">Create your account</string>
     <string name="signup_provider_step1_subtitle">Enter your email and password</string>
-    
+
     <!-- Step 2: Email Verification (same as client) -->
     <string name="signup_provider_step2_title">Verify your email</string>
     <string name="signup_provider_step2_subtitle">We sent you a verification link. Open it to continue.</string>
-    
+
     <!-- Step 3: Personal Data (same as client) -->
     <string name="signup_provider_step3_title">Complete your profile</string>
     <string name="signup_provider_step3_subtitle">Enter your personal information</string>
-    
+
     <!-- Step 4: Company Data -->
     <string name="signup_provider_step4_title">Company details</string>
     <string name="signup_provider_step4_subtitle">Information about your company</string>
@@ -167,7 +191,7 @@
     <string name="signup_register_button">Register</string>
     <string name="signup_continue_button">Continue</string>
     <string name="signup_verify_email_button">Verify Email</string>
-    
+
     <!-- Bottom Navigation - Client -->
     <string name="nav_client_requests">Requests</string>
     <string name="nav_client_quotes">Quotes</string>
@@ -175,7 +199,7 @@
     <string name="nav_client_templates">Templates</string>
     <string name="nav_client_tracking">Tracking</string>
     <string name="nav_client_profile">Profile</string>
-    
+
     <!-- Bottom Navigation - Provider -->
     <string name="nav_provider_fleet">Fleet</string>
     <string name="nav_provider_routes">Routes</string>
@@ -183,7 +207,7 @@
     <string name="nav_provider_deals">Deals</string>
     <string name="nav_provider_tracking">Tracking</string>
     <string name="nav_provider_profile">Profile</string>
-    
+
     <!-- Placeholder Screens -->
     <string name="screen_title_requests">Requests</string>
     <string name="screen_title_quotes">Quotes</string>
@@ -193,47 +217,52 @@
     <string name="screen_title_profile">Profile</string>
     <string name="screen_title_fleet">Manage Fleet</string>
     <string name="screen_title_routes">Manage Routes</string>
-    
+
     <!-- Routes Management -->
     <string name="routes_title">Routes</string>
-    <string name="routes_add_button">Add Routes</string>
-    <string name="routes_filter_all">All</string>
-    <string name="routes_filter_type">Type</string>
-    <string name="routes_filter_department">Department</string>
-    <string name="routes_filter_status">Status</string>
-    <string name="routes_type_pp">PP</string>
-    <string name="routes_type_dd">DD</string>
-    <string name="routes_origin">Origin:</string>
-    <string name="routes_stop">Stop:</string>
-    <string name="routes_destination">Destination:</string>
+    <string name="common_close">Close</string>
+
+    <string name="routes_your">Your Routes</string>
+    <string name="routes_add_button">Add Route</string>
+    <string name="routes_empty">No routes registered</string>
+    <string name="routes_empty_subtitle">Press the button to add one</string>
+    <string name="routes_create_title">Create Route</string>
+    <string name="routes_edit_title">Edit Route</string>
+    <string name="routes_save_button">Save Route</string>
     <string name="routes_active">Active</string>
     <string name="routes_inactive">Inactive</string>
-    <string name="routes_empty">No routes registered</string>
-    <string name="routes_empty_subtitle">Add your first route to get started</string>
-    
-    <!-- Create Route Dialog -->
-    <string name="create_route_title">Create Route</string>
-    <string name="edit_route_title">Edit Route</string>
-    <string name="route_type_label">Route Type</string>
-    <string name="route_origin_dept_label">Department</string>
-    <string name="route_origin_prov_label">Province</string>
-    <string name="route_origin_dist_label">District</string>
-    <string name="route_destination_dept_label">Department</string>
-    <string name="route_destination_prov_label">Province</string>
-    <string name="route_destination_dist_label">District</string>
-    <string name="route_stop_dept_label">Department (Stop)</string>
-    <string name="route_stop_prov_label">Province (Stop)</string>
-    <string name="route_stop_dist_label">District (Stop)</string>
-    <string name="route_create_button">Create</string>
-    <string name="route_update_button">Update</string>
-    <string name="route_delete_button">Delete</string>
-    <string name="route_delete_confirm_title">Delete route?</string>
-    <string name="route_delete_confirm_message">This action cannot be undone</string>
-    
-    <!-- Geo locations -->
-    <string name="geo_select_department">Select department</string>
-    <string name="geo_select_province">Select province</string>
-    <string name="geo_select_district">Select district</string>
+    <string name="routes_type_pp">Province to Province</string>
+    <string name="routes_type_dd">Department to Department</string>
+    <string name="routes_type_pp_short">Prov → Prov</string>
+    <string name="routes_type_dd_short">Dept → Dept</string>
+    <string name="routes_origin">Origin</string>
+    <string name="routes_destination">Destination</string>
+    <string name="routes_filters_title">Route Filters</string>
+    <string name="routes_filters_type">Route Type</string>
+    <string name="routes_filters_status">Status</string>
+    <string name="routes_filters_all">All</string>
+    <string name="routes_filters_active">Active</string>
+    <string name="routes_filters_inactive">Inactive</string>
+    <string name="routes_filters_origin">Filter by Origin</string>
+    <string name="routes_filters_destination">Filter by Destination</string>
+    <string name="routes_filters_apply">Apply Filters</string>
+    <string name="routes_filters_clear">Clear All</string>
+    <string name="routes_filters_clear_section">Clear</string>
+    <string name="routes_menu_options">Options</string>
+    <string name="routes_menu_edit">Edit</string>
+    <string name="routes_menu_delete">Delete</string>
+    <string name="routes_type_label">Route Type</string>
+    <string name="routes_origin_label">Origin</string>
+    <string name="routes_destination_label">Destination</string>
+    <string name="routes_department_label">Department</string>
+    <string name="routes_province_label">Province</string>
+    <string name="routes_province_optional">Province (optional)</string>
+    <string name="routes_active_label">Route Active</string>
+    <string name="routes_loading_catalog">Loading catalog…</string>
+    <string name="routes_select_department_first">Select department first</string>
+
+    <!-- Common Actions -->
+    <string name="common_logout">Logout</string>
 
     <!-- Drivers Management -->
     <string name="drivers_title">Drivers</string>
@@ -260,6 +289,17 @@
     <string name="drivers_license_number">License Number</string>
     <string name="drivers_active_label">Driver Active</string>
     <string name="drivers_save_button">Save Driver</string>
+    <string name="drivers_filters_title">Driver Filters</string>
+    <string name="drivers_filters_status">Status</string>
+    <string name="drivers_filters_all">All</string>
+    <string name="drivers_filters_active">Active</string>
+    <string name="drivers_filters_inactive">Inactive</string>
+    <string name="drivers_filters_search_hint">Search by name, email, phone or license</string>
+    <string name="drivers_filters_apply">Apply</string>
+    <string name="drivers_filters_clear">Clear</string>
+    <string name="drivers_menu_options">Options</string>
+    <string name="drivers_menu_edit">Edit</string>
+    <string name="drivers_menu_delete">Delete</string>
     <string name="common_refresh">Refresh</string>
 
     <!-- Vehicles Management -->
@@ -274,4 +314,118 @@
     <string name="vehicles_plate">Plate</string>
     <string name="vehicles_active">Active</string>
     <string name="vehicles_inactive">Inactive</string>
+    <string name="vehicles_create_title">Create Vehicle</string>
+    <string name="vehicles_edit_title">Edit Vehicle</string>
+    <string name="vehicles_save_button">Save</string>
+    <string name="vehicles_filters_title">Vehicle Filters</string>
+    <string name="vehicles_filters_status">Status</string>
+    <string name="vehicles_filters_all">All</string>
+    <string name="vehicles_filters_active">Active</string>
+    <string name="vehicles_filters_inactive">Inactive</string>
+    <string name="vehicles_filters_search_hint">Search by name or plate</string>
+    <string name="vehicles_filters_apply">Apply</string>
+    <string name="vehicles_filters_clear">Clear</string>
+    <string name="vehicles_menu_options">Options</string>
+    <string name="vehicles_menu_edit">Edit</string>
+    <string name="vehicles_menu_delete">Delete</string>
+
+    <!-- Client Requests -->
+    <string name="client_requests_title">My Requests</string>
+    <string name="client_requests_create_new">Create New</string>
+    <string name="client_requests_stats_title">Request Summary</string>
+    <string name="client_requests_total">Total</string>
+    <string name="client_requests_active">Active</string>
+    <string name="client_requests_completed">Completed</string>
+    <string name="client_requests_empty_title">You have no requests</string>
+    <string name="client_requests_empty_subtitle">Create your first request to start transporting your shipments</string>
+    <string name="client_requests_filters_title">Filter Requests</string>
+    <string name="client_requests_filter_all">All</string>
+    <string name="client_requests_filter_open">Open</string>
+    <string name="client_requests_filter_in_progress">In Progress</string>
+    <string name="client_requests_filter_completed">Completed</string>
+    <string name="client_requests_filter_cancelled">Cancelled</string>
+    <string name="common_filters">Filters</string>
+    <string name="common_apply">Apply</string>
+
+    <!-- Create Request -->
+    <string name="create_request_title">Create Request</string>
+    <string name="create_request_add_item">Add Item</string>
+    <string name="create_request_basic_info">Basic Information</string>
+    <string name="create_request_name_label">Request Name</string>
+    <string name="create_request_name_placeholder">E.g: Office furniture</string>
+    <string name="create_request_origin_label">Origin Location</string>
+    <string name="create_request_origin_placeholder">E.g: Lima, Peru</string>
+    <string name="create_request_destination_label">Destination Location</string>
+    <string name="create_request_destination_placeholder">E.g: Arequipa, Peru</string>
+    <string name="create_request_payment_on_delivery">Payment on delivery</string>
+    <string name="create_request_items_title">Items to Transport</string>
+    <string name="create_request_items_count">items</string>
+    <string name="create_request_empty_items_title">No items added</string>
+    <string name="create_request_empty_items_subtitle">Add at least one item to create the request</string>
+    <string name="create_request_create_button">Create Request</string>
+    <string name="create_request_add_item_title">Add Item</string>
+    <string name="create_request_item_name_label">Item Name</string>
+    <string name="create_request_item_name_placeholder">Ex: Document box</string>
+    <string name="create_request_item_height">Height</string>
+    <string name="create_request_item_width">Width</string>
+    <string name="create_request_item_length">Length</string>
+    <string name="create_request_item_weight_label">Weight</string>
+    <string name="create_request_item_quantity_label">Quantity</string>
+    <string name="create_request_item_fragile_checkbox">Fragile item</string>
+    <string name="create_request_item_notes_label">Additional notes</string>
+    <string name="create_request_item_notes_placeholder">Special instructions for transport</string>
+    <string name="create_request_item_add_images">Add images</string>
+    <string name="create_request_item_images_selected">selected</string>
+    <string name="create_request_item_dimensions">Dimensions</string>
+    <string name="create_request_item_weight">Weight</string>
+    <string name="create_request_item_quantity">Quantity</string>
+    <string name="create_request_item_fragile">Fragile</string>
+    <string name="create_request_item_images">images</string>
+    
+    <!-- Create Request Screen - Additional strings -->
+    <string name="create_request_screen_title">Create Request</string>
+    <string name="create_request_section_origin">Origin</string>
+    <string name="create_request_section_destination">Destination</string>
+    <string name="create_request_section_notes">Notes</string>
+    <string name="create_request_section_items">Items</string>
+    <string name="create_request_origin_district_label">Origin district</string>
+    <string name="create_request_destination_district_label">Destination district</string>
+    <string name="create_request_notes_label">Notes for the transporter</string>
+    <string name="create_request_save_button">Save request</string>
+    <string name="create_request_remove_item">Remove</string>
+    <string name="create_request_new_item">New item %1$d</string>
+    <string name="create_request_default_item">Box #%1$d</string>
+    <string name="create_request_add_item_description">Add item</string>
+    <string name="create_request_back_description">Back</string>
+    
+    <!-- Client Requests - Sample Data -->
+    <string name="sample_request_1_name">Important Documents Shipment</string>
+    <string name="sample_request_1_route">Lima → Callao</string>
+    <string name="sample_request_1_weight">2.5 kg</string>
+    <string name="sample_request_1_items">3 items</string>
+    <string name="sample_request_1_date">Jan 15</string>
+    
+    <string name="sample_request_2_name">Office Move</string>
+    <string name="sample_request_2_route">Miraflores → San Isidro</string>
+    <string name="sample_request_2_weight">150 kg</string>
+    <string name="sample_request_2_items">12 items</string>
+    <string name="sample_request_2_date">Jan 12</string>
+    
+    <string name="sample_request_3_name">Gift Shipment</string>
+    <string name="sample_request_3_route">Lima → Arequipa</string>
+    <string name="sample_request_3_weight">5.2 kg</string>
+    <string name="sample_request_3_items">2 items</string>
+    <string name="sample_request_3_date">Jan 10</string>
+    
+    <string name="sample_request_4_name">Legal Documents</string>
+    <string name="sample_request_4_route">San Borja → La Molina</string>
+    <string name="sample_request_4_weight">1.8 kg</string>
+    <string name="sample_request_4_items">1 item</string>
+    <string name="sample_request_4_date">Jan 8</string>
+    
+    <string name="sample_request_5_name">Electronic Equipment</string>
+    <string name="sample_request_5_route">Surco → Barranco</string>
+    <string name="sample_request_5_weight">8.5 kg</string>
+    <string name="sample_request_5_items">4 items</string>
+    <string name="sample_request_5_date">Jan 5</string>
 </resources>
