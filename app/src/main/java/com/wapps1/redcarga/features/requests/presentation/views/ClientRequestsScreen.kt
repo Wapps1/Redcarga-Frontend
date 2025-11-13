@@ -7,8 +7,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -20,69 +19,33 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.wapps1.redcarga.R
 import com.wapps1.redcarga.core.ui.theme.*
+import com.wapps1.redcarga.features.requests.domain.models.RequestSummary
+import com.wapps1.redcarga.features.requests.presentation.viewmodels.ClientRequestsViewModel
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.Box
 import compose.icons.fontawesomeicons.solid.CalendarAlt
+import compose.icons.fontawesomeicons.solid.ExclamationTriangle
 import compose.icons.fontawesomeicons.solid.MapMarkedAlt
 import compose.icons.fontawesomeicons.solid.WeightHanging
+import java.text.SimpleDateFormat
+import java.util.*
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ClientRequestsScreen(
     onNavigateBack: () -> Unit = {},
-    onNavigateToCreateRequest: () -> Unit = {}
+    onNavigateToCreateRequest: () -> Unit = {},
+    viewModel: ClientRequestsViewModel = hiltViewModel()
 ) {
-    var showFilters by remember { mutableStateOf(false) }
-    var selectedFilter by remember { mutableStateOf("all") }
-    
-    // Obtener solicitudes hardcodeadas una sola vez
-    val hardcodedRequests = getHardcodedRequests()
-    
+    // Observar solicitudes del ViewModel
+    val requests by viewModel.clientRequests.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
+    val detailState by viewModel.detailState.collectAsState()
+
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(R.string.client_requests_title),
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = RcColor6
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = stringResource(R.string.common_back),
-                            tint = RcColor6
-                        )
-                    }
-                },
-                actions = {
-                    IconButton(onClick = { showFilters = true }) {
-                        Icon(
-                            imageVector = Icons.Default.FilterList,
-                            contentDescription = stringResource(R.string.common_filters),
-                            tint = RcColor5
-                        )
-                    }
-                    IconButton(onClick = { /* TODO: Refresh */ }) {
-                        Icon(
-                            imageVector = Icons.Default.Refresh,
-                            contentDescription = stringResource(R.string.common_refresh),
-                            tint = RcColor4
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = RcColor1,
-                    titleContentColor = RcColor6
-                )
-            )
-        },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onNavigateToCreateRequest,
@@ -99,44 +62,115 @@ fun ClientRequestsScreen(
         },
         containerColor = RcColor1
     ) { paddingValues ->
-        LazyColumn(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Header con estadísticas
-            item {
-                RequestStatsCard()
-            }
-            
-            // Lista de solicitudes
-            items(hardcodedRequests) { request ->
-                RequestCard(
-                    request = request,
-                    onClick = { /* TODO: Navigate to detail */ }
-                )
-            }
-            
-            // Empty state si no hay solicitudes
-            if (hardcodedRequests.isEmpty()) {
-                item {
-                    EmptyRequestsCard()
+            // Contenido principal con fondo
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(RcColor1)
+            ) {
+                // Espacio para el header
+                Spacer(modifier = Modifier.height(80.dp))
+
+                // Manejar estados de la UI
+                when (uiState) {
+                    is ClientRequestsViewModel.UiState.Loading -> {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(color = RcColor5)
+                        }
+                    }
+                    is ClientRequestsViewModel.UiState.Error -> {
+                        ErrorStateContent(
+                            message = (uiState as ClientRequestsViewModel.UiState.Error).message,
+                            onRetry = { viewModel.refreshRequests() }
+                        )
+                    }
+                    is ClientRequestsViewModel.UiState.Success -> {
+                        // Lista de contenido
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(horizontal = 16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            // Header con estadísticas
+                            item {
+                                RequestStatsCard(
+                                    total = viewModel.getTotalRequests(),
+                                    active = viewModel.getActiveRequests(),
+                                    completed = viewModel.getCompletedRequests()
+                                )
+                            }
+
+                            // Lista de solicitudes
+                            items(requests) { request ->
+                                RequestCard(
+                                    request = request,
+                                    onViewDetails = { viewModel.loadRequestDetails(request.requestId) }
+                                )
+                            }
+
+                            // Empty state si no hay solicitudes
+                            if (requests.isEmpty()) {
+                                item {
+                                    EmptyRequestsCard()
+                                }
+                            }
+
+                            // Espacio extra al final
+                            item {
+                                Spacer(modifier = Modifier.height(80.dp))
+                            }
+                        }
+                    }
                 }
             }
+
+            // Header flotante encima
+            RequestsCustomHeader()
+        }
+
+        // Modal de detalles
+        if (detailState !is ClientRequestsViewModel.DetailState.Idle) {
+            RequestDetailModal(
+                detailState = detailState,
+                onDismiss = { viewModel.closeDetails() }
+            )
         }
     }
-    
-    // Dialog de filtros
-    if (showFilters) {
-        RequestFiltersDialog(
-            selectedFilter = selectedFilter,
-            onFilterSelected = { filter ->
-                selectedFilter = filter
-                showFilters = false
-            },
-            onDismiss = { showFilters = false }
+}
+
+/**
+ * Header custom con diseño degradado (sin tabs)
+ */
+@Composable
+private fun RequestsCustomHeader() {
+    val gradient = androidx.compose.ui.graphics.Brush.horizontalGradient(
+        colors = listOf(Color(0xFFFF8A65), Color(0xFFFF7043))
+    )
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                brush = gradient,
+                shape = RoundedCornerShape(bottomStart = 32.dp, bottomEnd = 32.dp)
+            )
+            .padding(top = 16.dp, bottom = 16.dp, start = 20.dp, end = 20.dp)
+    ) {
+        // Solo título, sin tabs
+        Text(
+            text = "Mis Solicitudes",
+            style = MaterialTheme.typography.titleMedium,
+            color = Color.White,
+            fontWeight = FontWeight.Bold
         )
     }
 }
@@ -145,7 +179,11 @@ fun ClientRequestsScreen(
  * Card con estadísticas de solicitudes
  */
 @Composable
-private fun RequestStatsCard() {
+private fun RequestStatsCard(
+    total: Int,
+    active: Int,
+    completed: Int
+) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -161,26 +199,26 @@ private fun RequestStatsCard() {
                 fontWeight = FontWeight.Bold,
                 color = RcColor6
             )
-            
+
             Spacer(modifier = Modifier.height(16.dp))
-            
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 StatItem(
                     title = stringResource(R.string.client_requests_total),
-                    value = "12",
+                    value = total.toString(),
                     color = RcColor4
                 )
                 StatItem(
                     title = stringResource(R.string.client_requests_active),
-                    value = "3",
+                    value = active.toString(),
                     color = RcColor5
                 )
                 StatItem(
                     title = stringResource(R.string.client_requests_completed),
-                    value = "9",
+                    value = completed.toString(),
                     color = RcColor3
                 )
             }
@@ -219,14 +257,17 @@ private fun StatItem(
  */
 @Composable
 private fun RequestCard(
-    request: HardcodedRequest,
-    onClick: () -> Unit
+    request: RequestSummary,
+    onViewDetails: () -> Unit
 ) {
+    val dateFormatter = remember {
+        SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+    }
+
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         color = Color.White,
-        onClick = onClick,
         shadowElevation = 3.dp
     ) {
         Column(
@@ -239,18 +280,18 @@ private fun RequestCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = request.name,
+                    text = request.requestName,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = RcColor6,
                     modifier = Modifier.weight(1f)
                 )
-                
-                RequestStatusChip(status = request.status)
+
+                RequestStatusChip(status = request.status.name)
             }
-            
+
             Spacer(modifier = Modifier.height(12.dp))
-            
+
             // Ruta
             Row(
                 verticalAlignment = Alignment.CenterVertically
@@ -271,15 +312,15 @@ private fun RequestCard(
                 }
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
-                    text = request.route,
+                    text = request.getRouteDescription(),
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
                     color = RcColor6
                 )
             }
-            
+
             Spacer(modifier = Modifier.height(8.dp))
-            
+
             // Información adicional
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -297,13 +338,13 @@ private fun RequestCard(
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = request.weight,
+                        text = "${"%.1f".format(request.totalWeightKg.toDouble())} kg",
                         fontSize = 13.sp,
                         color = RcColor8,
                         fontWeight = FontWeight.Medium
                     )
                 }
-                
+
                 // Items
                 Row(
                     verticalAlignment = Alignment.CenterVertically
@@ -316,13 +357,13 @@ private fun RequestCard(
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = request.items,
+                        text = "${request.itemsCount} items",
                         fontSize = 13.sp,
                         color = RcColor8,
                         fontWeight = FontWeight.Medium
                     )
                 }
-                
+
                 // Fecha
                 Row(
                     verticalAlignment = Alignment.CenterVertically
@@ -335,12 +376,30 @@ private fun RequestCard(
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = request.date,
+                        text = dateFormatter.format(Date(request.createdAt.toEpochMilli())),
                         fontSize = 13.sp,
                         color = RcColor8,
                         fontWeight = FontWeight.Medium
                     )
                 }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Botón "Ver más"
+            Button(
+                onClick = onViewDetails,
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = RcColor5
+                ),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text(
+                    text = "Ver más",
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 14.sp
+                )
             }
         }
     }
@@ -358,7 +417,7 @@ private fun RequestStatusChip(status: String) {
         "cancelled" -> RcColor8.copy(alpha = 0.1f) to RcColor8
         else -> RcColor7 to RcColor6
     }
-    
+
     Surface(
         shape = RoundedCornerShape(12.dp),
         color = backgroundColor
@@ -394,9 +453,9 @@ private fun EmptyRequestsCard() {
                 tint = RcColor8,
                 modifier = Modifier.size(48.dp)
             )
-            
+
             Spacer(modifier = Modifier.height(16.dp))
-            
+
             Text(
                 text = stringResource(R.string.client_requests_empty_title),
                 fontSize = 18.sp,
@@ -404,9 +463,9 @@ private fun EmptyRequestsCard() {
                 color = RcColor6,
                 textAlign = TextAlign.Center
             )
-            
+
             Spacer(modifier = Modifier.height(8.dp))
-            
+
             Text(
                 text = stringResource(R.string.client_requests_empty_subtitle),
                 fontSize = 14.sp,
@@ -419,138 +478,617 @@ private fun EmptyRequestsCard() {
 }
 
 /**
- * Dialog de filtros
+ * Contenido para estado de error
  */
 @Composable
-private fun RequestFiltersDialog(
-    selectedFilter: String,
-    onFilterSelected: (String) -> Unit,
+private fun ErrorStateContent(
+    message: String,
+    onRetry: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            color = Color.White,
+            shadowElevation = 3.dp
+        ) {
+            Column(
+                modifier = Modifier.padding(32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Refresh,
+                    contentDescription = null,
+                    tint = RcColor5,
+                    modifier = Modifier.size(48.dp)
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = "Error al cargar",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = RcColor6,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = message,
+                    fontSize = 14.sp,
+                    color = RcColor8,
+                    textAlign = TextAlign.Center,
+                    lineHeight = 20.sp
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Button(
+                    onClick = onRetry,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = RcColor5
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Refresh,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Reintentar")
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Modal de detalles completo de una solicitud
+ */
+@Composable
+public fun RequestDetailModal(
+    detailState: ClientRequestsViewModel.DetailState,
     onDismiss: () -> Unit
 ) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(
-                text = stringResource(R.string.client_requests_filters_title),
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = RcColor6
-            )
-        },
-        text = {
-            Column {
-                val filters = listOf(
-                    "all" to stringResource(R.string.client_requests_filter_all),
-                    "open" to stringResource(R.string.client_requests_filter_open),
-                    "in_progress" to stringResource(R.string.client_requests_filter_in_progress),
-                    "completed" to stringResource(R.string.client_requests_filter_completed),
-                    "cancelled" to stringResource(R.string.client_requests_filter_cancelled)
-                )
-                
-                filters.forEach { (value, label) ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
+    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.9f),
+            shape = RoundedCornerShape(24.dp),
+            color = RcColor1
+        ) {
+            when (detailState) {
+                is ClientRequestsViewModel.DetailState.Loading -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
                     ) {
-                        RadioButton(
-                            selected = selectedFilter == value,
-                            onClick = { onFilterSelected(value) },
-                            colors = RadioButtonDefaults.colors(
-                                selectedColor = RcColor5,
-                                unselectedColor = RcColor8
+                        CircularProgressIndicator(color = RcColor5)
+                    }
+                }
+                is ClientRequestsViewModel.DetailState.Error -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.padding(24.dp)
+                        ) {
+                            Text(
+                                text = "Error",
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = RcColor5
                             )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = detailState.message,
+                                fontSize = 14.sp,
+                                color = RcColor8,
+                                textAlign = TextAlign.Center
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Button(onClick = onDismiss) {
+                                Text("Cerrar")
+                            }
+                        }
+                    }
+                }
+                is ClientRequestsViewModel.DetailState.Success -> {
+                    RequestDetailContent(
+                        request = detailState.request,
+                        onDismiss = onDismiss
+                    )
+                }
+                else -> {}
+            }
+        }
+    }
+}
+
+/**
+ * Contenido del modal de detalles
+ */
+@Composable
+private fun RequestDetailContent(
+    request: com.wapps1.redcarga.features.requests.domain.models.Request,
+    onDismiss: () -> Unit
+) {
+    val dateFormatter = remember {
+        SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
+        // Header del modal
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    brush = androidx.compose.ui.graphics.Brush.horizontalGradient(
+                        colors = listOf(Color(0xFFFF8A65), Color(0xFFFF7043))
+                    ),
+                    shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+                )
+                .padding(20.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Detalles de Solicitud",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                    Text(
+                        text = request.requestName,
+                        fontSize = 14.sp,
+                        color = Color.White.copy(alpha = 0.9f)
+                    )
+                }
+                IconButton(onClick = onDismiss) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Cerrar",
+                        tint = Color.White
+                    )
+                }
+            }
+        }
+
+        // Contenido desplazable
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            // Información general
+            item {
+                DetailSection(title = "Información General") {
+                    DetailInfoRow("Estado", request.status.name.replace("_", " "))
+                    DetailInfoRow("Creado", dateFormatter.format(Date(request.createdAt.toEpochMilli())))
+                    DetailInfoRow("Actualizado", dateFormatter.format(Date(request.updatedAt.toEpochMilli())))
+                    if (request.closedAt != null) {
+                        DetailInfoRow("Cerrado", dateFormatter.format(Date(request.closedAt.toEpochMilli())))
+                    }
+                    DetailInfoRow("Solicitante", request.requesterNameSnapshot)
+                    DetailInfoRow("Documento", request.requesterDocNumber)
+                }
+            }
+
+            // Ubicaciones
+            item {
+                DetailSection(title = "Origen y Destino") {
+                    LocationCard(
+                        title = "Origen",
+                        ubigeo = request.origin,
+                        icon = FontAwesomeIcons.Solid.MapMarkedAlt
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    LocationCard(
+                        title = "Destino",
+                        ubigeo = request.destination,
+                        icon = FontAwesomeIcons.Solid.MapMarkedAlt
+                    )
+                }
+            }
+
+            // Resumen de envío
+            item {
+                DetailSection(title = "Resumen del Envío") {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        SummaryItem(
+                            label = "Items",
+                            value = request.itemsCount.toString(),
+                            icon = FontAwesomeIcons.Solid.Box,
+                            color = RcColor3
                         )
-                        Spacer(modifier = Modifier.width(8.dp))
+                        SummaryItem(
+                            label = "Peso Total",
+                            value = "${"%.1f".format(request.totalWeightKg.toDouble())} kg",
+                            icon = FontAwesomeIcons.Solid.WeightHanging,
+                            color = RcColor4
+                        )
+                        SummaryItem(
+                            label = "Frágiles",
+                            value = request.getFragileItemsCount().toString(),
+                            icon = compose.icons.FontAwesomeIcons.Solid.ExclamationTriangle,
+                            color = RcColor5
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    DetailInfoRow("Pago contra entrega", if (request.paymentOnDelivery) "Sí" else "No")
+                }
+            }
+
+            // Items (Artículos)
+            item {
+                Text(
+                    text = "Artículos",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = RcColor6,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+            }
+
+            items(request.items.sortedBy { it.position }) { item ->
+                ItemDetailCard(item = item)
+            }
+
+            // Espacio final
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+        }
+    }
+}
+
+@Composable
+private fun DetailSection(
+    title: String,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        color = Color.White,
+        shadowElevation = 2.dp
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Text(
+                text = title,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = RcColor6,
+                modifier = Modifier.padding(bottom = 12.dp)
+            )
+            content()
+        }
+    }
+}
+
+@Composable
+private fun DetailInfoRow(label: String, value: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = label,
+            fontSize = 14.sp,
+            color = RcColor8,
+            modifier = Modifier.weight(0.4f)
+        )
+        Text(
+            text = value,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Medium,
+            color = RcColor6,
+            modifier = Modifier.weight(0.6f),
+            textAlign = TextAlign.End
+        )
+    }
+}
+
+@Composable
+private fun LocationCard(
+    title: String,
+    ubigeo: com.wapps1.redcarga.features.requests.domain.models.UbigeoSnapshot,
+    icon: androidx.compose.ui.graphics.vector.ImageVector
+) {
+    Surface(
+        shape = RoundedCornerShape(12.dp),
+        color = RcColor5.copy(alpha = 0.05f)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Surface(
+                shape = RoundedCornerShape(8.dp),
+                color = RcColor5.copy(alpha = 0.15f),
+                modifier = Modifier.size(36.dp)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = RcColor5,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.width(12.dp))
+            Column {
+                Text(
+                    text = title,
+                    fontSize = 12.sp,
+                    color = RcColor8,
+                    fontWeight = FontWeight.Medium
+                )
+                Text(
+                    text = ubigeo.getFullLocation(),
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = RcColor6
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SummaryItem(
+    label: String,
+    value: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    color: Color
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Surface(
+            shape = RoundedCornerShape(12.dp),
+            color = color.copy(alpha = 0.1f),
+            modifier = Modifier.size(48.dp)
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = color,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = value,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            color = RcColor6
+        )
+        Text(
+            text = label,
+            fontSize = 12.sp,
+            color = RcColor8
+        )
+    }
+}
+
+@Composable
+private fun ItemDetailCard(
+    item: com.wapps1.redcarga.features.requests.domain.models.RequestItem
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        color = Color.White,
+        shadowElevation = 2.dp
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            // Header del item
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = item.itemName,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = RcColor6,
+                    modifier = Modifier.weight(1f)
+                )
+                if (item.fragile) {
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = RcColor5.copy(alpha = 0.1f)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = compose.icons.FontAwesomeIcons.Solid.ExclamationTriangle,
+                                contentDescription = null,
+                                tint = RcColor5,
+                                modifier = Modifier.size(12.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "FRÁGIL",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = RcColor5
+                            )
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Dimensiones y peso
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column {
+                    Text(
+                        text = "Dimensiones (cm)",
+                        fontSize = 12.sp,
+                        color = RcColor8,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Text(
+                        text = "${item.heightCm} × ${item.widthCm} × ${item.lengthCm}",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = RcColor6
+                    )
+                }
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(
+                        text = "Peso",
+                        fontSize = 12.sp,
+                        color = RcColor8,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Text(
+                        text = "${"%.1f".format(item.weightKg.toDouble())} kg",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = RcColor6
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column {
+                    Text(
+                        text = "Cantidad",
+                        fontSize = 12.sp,
+                        color = RcColor8,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Text(
+                        text = "${item.quantity} unidades",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = RcColor6
+                    )
+                }
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(
+                        text = "Peso Total",
+                        fontSize = 12.sp,
+                        color = RcColor8,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Text(
+                        text = "${"%.1f".format(item.totalWeightKg.toDouble())} kg",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = RcColor6
+                    )
+                }
+            }
+
+            // Notas
+            if (item.notes.isNotBlank()) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = RcColor7
+                ) {
+                    Column(
+                        modifier = Modifier.padding(12.dp)
+                    ) {
                         Text(
-                            text = label,
-                            fontSize = 14.sp,
+                            text = "Notas",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = RcColor8
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = item.notes,
+                            fontSize = 13.sp,
                             color = RcColor6
                         )
                     }
                 }
             }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = onDismiss,
-                colors = ButtonDefaults.textButtonColors(
-                    contentColor = RcColor5
-                )
-            ) {
+
+            // Imágenes
+            if (item.images.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(12.dp))
                 Text(
-                    text = stringResource(R.string.common_apply),
-                    fontWeight = FontWeight.Bold
+                    text = "Imágenes (${item.images.size})",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = RcColor8
                 )
+                Spacer(modifier = Modifier.height(8.dp))
+                androidx.compose.foundation.lazy.LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(item.images.sortedBy { it.imagePosition }) { image ->
+                        ItemImageThumbnail(imageUrl = image.imageUrl)
+                    }
+                }
             }
-        },
-        containerColor = Color.White,
-        shape = RoundedCornerShape(16.dp)
-    )
+        }
+    }
 }
 
-/**
- * Data class para solicitudes hardcodeadas
- */
-data class HardcodedRequest(
-    val id: String,
-    val name: String,
-    val status: String,
-    val route: String,
-    val weight: String,
-    val items: String,
-    val date: String
-)
-
-/**
- * Función para obtener solicitudes hardcodeadas
- */
 @Composable
-private fun getHardcodedRequests(): List<HardcodedRequest> = listOf(
-    HardcodedRequest(
-        id = "1",
-        name = stringResource(R.string.sample_request_1_name),
-        status = "open",
-        route = stringResource(R.string.sample_request_1_route),
-        weight = stringResource(R.string.sample_request_1_weight),
-        items = stringResource(R.string.sample_request_1_items),
-        date = stringResource(R.string.sample_request_1_date)
-    ),
-    HardcodedRequest(
-        id = "2",
-        name = stringResource(R.string.sample_request_2_name),
-        status = "in_progress",
-        route = stringResource(R.string.sample_request_2_route),
-        weight = stringResource(R.string.sample_request_2_weight),
-        items = stringResource(R.string.sample_request_2_items),
-        date = stringResource(R.string.sample_request_2_date)
-    ),
-    HardcodedRequest(
-        id = "3",
-        name = stringResource(R.string.sample_request_3_name),
-        status = "completed",
-        route = stringResource(R.string.sample_request_3_route),
-        weight = stringResource(R.string.sample_request_3_weight),
-        items = stringResource(R.string.sample_request_3_items),
-        date = stringResource(R.string.sample_request_3_date)
-    ),
-    HardcodedRequest(
-        id = "4",
-        name = stringResource(R.string.sample_request_4_name),
-        status = "open",
-        route = stringResource(R.string.sample_request_4_route),
-        weight = stringResource(R.string.sample_request_4_weight),
-        items = stringResource(R.string.sample_request_4_items),
-        date = stringResource(R.string.sample_request_4_date)
-    ),
-    HardcodedRequest(
-        id = "5",
-        name = stringResource(R.string.sample_request_5_name),
-        status = "cancelled",
-        route = stringResource(R.string.sample_request_5_route),
-        weight = stringResource(R.string.sample_request_5_weight),
-        items = stringResource(R.string.sample_request_5_items),
-        date = stringResource(R.string.sample_request_5_date)
-    )
-)
+private fun ItemImageThumbnail(imageUrl: String) {
+    Surface(
+        modifier = Modifier
+            .size(100.dp),
+        shape = RoundedCornerShape(12.dp),
+        color = RcColor7
+    ) {
+        coil.compose.AsyncImage(
+            model = imageUrl,
+            contentDescription = "Imagen del artículo",
+            modifier = Modifier.fillMaxSize(),
+            contentScale = androidx.compose.ui.layout.ContentScale.Crop
+        )
+    }
+}

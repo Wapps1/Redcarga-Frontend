@@ -47,7 +47,7 @@ class RedcargaWebSocketManager @Inject constructor() {
         this.userType = userType
         this.companyId = companyId
         
-        val wsUrl = "ws://10.0.2.2:8080/ws?access_token=${URLEncoder.encode(iamToken, "UTF-8")}"
+        val wsUrl = "wss://redcargabk-b4b7cng3ftb2bfea.canadacentral-01.azurewebsites.net/ws?access_token=${URLEncoder.encode(iamToken, "UTF-8")}"
         Log.d("WebSocketManager", "🌐 URL WebSocket: $wsUrl")
         
         val request = Request.Builder()

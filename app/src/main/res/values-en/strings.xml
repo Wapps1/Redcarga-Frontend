@@ -428,4 +428,29 @@
     <string name="sample_request_5_weight">8.5 kg</string>
     <string name="sample_request_5_items">4 items</string>
     <string name="sample_request_5_date">Jan 5</string>
+    
+    <!-- Client Deals Screen -->
+    <string name="client_deals_title">Quotes</string>
+    <string name="client_deals_tab_all">All</string>
+    <string name="client_deals_tab_in_deal">In Deal</string>
+    <string name="client_deals_tab_in_progress">In Progress</string>
+    <string name="client_deals_select_request">Select a request</string>
+    <string name="client_deals_request_day">Day:</string>
+    <string name="client_deals_request_origin">Origin:</string>
+    <string name="client_deals_request_destination">Destination:</string>
+    <string name="client_deals_search_placeholder">Search quotes</string>
+    <string name="client_deals_quote_made_by">has made a quote</string>
+    <string name="client_deals_quote_for">for %1$s</string>
+    <string name="client_deals_company_rating">Company rating</string>
+    <string name="client_deals_price_proposed">Proposed price</string>
+    <string name="client_deals_button_details">Details</string>
+    <string name="client_deals_button_actions">Actions</string>
+    <string name="client_deals_button_chat">Go to chat</string>
+    <string name="client_deals_tag_new">New</string>
+    <string name="client_deals_empty_title">No quotes</string>
+    <string name="client_deals_empty_subtitle">Quotes will appear here when providers respond to your requests</string>
+    <string name="client_deals_loading">Loading quotes…</string>
+    <string name="client_deals_error_title">Error loading</string>
+    <string name="client_deals_error_subtitle">Could not load quotes. Please try again.</string>
+    <string name="client_deals_retry">Retry</string>
 </resources>

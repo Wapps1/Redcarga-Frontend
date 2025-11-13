@@ -49,7 +49,6 @@ fun ClientHomeScreen(
     }
     val scope = rememberCoroutineScope()
     
-    // Observar el username del usuario
     val username by authStore.currentUsername.collectAsState()
 
     LazyColumn(
@@ -59,7 +58,6 @@ fun ClientHomeScreen(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
-        // Header con saludo y botón de logout
         item {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -73,7 +71,6 @@ fun ClientHomeScreen(
                     color = RcColor6
                 )
 
-                // Botón de logout compacto y elegante
                 Surface(
                     onClick = {
                         scope.launch {
@@ -108,41 +105,32 @@ fun ClientHomeScreen(
             }
         }
 
-        // Sección: Últimos tratos activos
         item {
             ActiveDealsSection()
         }
 
-        // Sección: Acciones principales
         item {
             ClientActionsSection(
                 onNavigateToCreateRequest = onNavigateToCreateRequest
             )
         }
 
-        // Sección: Tus Solicitudes
         item {
             YourRequestsSection(
                 onNavigateToRequests = onNavigateToRequests
             )
         }
 
-        // Sección: Tus Cotizaciones
         item {
             YourQuotesSection()
         }
 
-        // Sección: Tus Tratos
         item {
             YourDealsSection()
         }
     }
 }
 
-/**
- * Sección de tratos activos con cards horizontales
- * Colores vibrantes con gradientes sutiles
- */
 @Composable
 private fun ActiveDealsSection() {
     Column {

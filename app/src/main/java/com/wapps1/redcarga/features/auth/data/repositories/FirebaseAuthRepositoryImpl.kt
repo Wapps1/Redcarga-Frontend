@@ -19,10 +19,10 @@ class FirebaseAuthRepositoryImpl @Inject constructor(
     @Named("firebaseApiKey") private val apiKey: String
 ) : FirebaseAuthRepository {
 
-    override suspend fun signInWithPassword(email: Email, password: Password): FirebaseSession =
+    override suspend fun signInWithPassword(email: Email, password: String): FirebaseSession =
         withContext(Dispatchers.IO) {
             runCatching {
-                val body = FirebaseSignInRequestDto(email.value, password.value, true)
+                val body = FirebaseSignInRequestDto(email.value, password, true)  // ✅ password es String directo
                 service.signInWithPassword(body, apiKey)
                     .toDomain(System.currentTimeMillis())
             }.getOrElse { err ->

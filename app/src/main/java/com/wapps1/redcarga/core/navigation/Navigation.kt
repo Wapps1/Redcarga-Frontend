@@ -31,16 +31,9 @@ fun Navigation(
     val sessionState by store.sessionState.collectAsState()
     val userType by store.currentUserType.collectAsState()
 
-    // bootstrap una sola vez
     LaunchedEffect(Unit) { store.bootstrap() }
-
-    // Reaccionar a cambios de sesión y navegar automáticamente a Main
-    // Solo cuando ya conocemos el userType (para que el grafo Main esté registrado)
     LaunchedEffect(sessionState, userType) {
         if (sessionState is SessionState.AppSignedIn && userType != null) {
-            Log.d("Navigation", "sessionState=${sessionState}")
-            Log.d("Navigation", "userType=${userType}")
-            Log.d("Navigation", "Navigating to Main graph")
             navController.navigate(NavGraph.Main.route) {
                 popUpTo(NavGraph.Auth.route) { inclusive = true }
                 launchSingleTop = true
@@ -84,13 +77,11 @@ fun Navigation(
         ) {
         authNavGraph(navController = navController)
         
-        // Solo carga mainNavGraph si hay userType válido
         userType?.let { type ->
             mainNavGraph(userType = type)
         }
         }
 
-        // Overlay de carga mientras hay FirebaseOnly (auto-login en curso)
         if (sessionState is SessionState.FirebaseOnly) {
             CircularProgressIndicator(modifier = androidx.compose.ui.Modifier.align(Alignment.Center))
         }

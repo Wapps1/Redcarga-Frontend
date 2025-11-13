@@ -107,8 +107,8 @@ class SignUpClientViewModel @Inject constructor(
     fun onOpenVerificationLink() {
             val raw = _ui.value.verificationLink
             val link = raw
-                .replace("http://localhost:8080", "http://10.0.2.2:8080")
-                .replace("https://localhost:8080", "http://10.0.2.2:8080")
+                .replace("http://localhost:8080", "https://redcargabk-b4b7cng3ftb2bfea.canadacentral-01.azurewebsites.net")
+                .replace("https://localhost:8080", "https://redcargabk-b4b7cng3ftb2bfea.canadacentral-01.azurewebsites.net")
             if (link.isNotBlank()) viewModelScope.launch { _effect.emit(Effect.OpenUrl(link)) }
     }
 
@@ -124,7 +124,7 @@ class SignUpClientViewModel @Inject constructor(
             runCatching {
                 Log.d(TAG, "Step3: inicio - email=${s.email}, accountId=$accId")
                 Log.d(TAG, "Step3: Firebase signInWithPassword")
-                val fb = firebaseAuth.signInWithPassword(Email(s.email), Password(s.password))
+                val fb = firebaseAuth.signInWithPassword(Email(s.email), s.password)  // ✅ String directo
                 Log.d(TAG, "Step3: Firebase OK - idToken.len=${fb.idToken.length}")
                 store.setFirebaseSession(fb)
                 // Formatear fecha a yyyy-MM-dd si viene como dd/MM/yyyy

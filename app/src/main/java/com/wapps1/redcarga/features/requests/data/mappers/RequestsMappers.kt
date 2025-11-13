@@ -18,9 +18,9 @@ object RequestsMappers {
             RequestStatus.OPEN // Default fallback
         }
     }
-    
+
     private fun RequestStatus.toStringValue(): String = this.name
-    
+
     // Helper functions for Instant conversions (API 24 compatible)
     private fun String.toInstant(): Instant {
         return try {
@@ -30,7 +30,7 @@ object RequestsMappers {
             Instant.now()
         }
     }
-    
+
     private fun Long.toInstant(): Instant {
         return try {
             Instant.ofEpochMilli(this)
@@ -39,7 +39,7 @@ object RequestsMappers {
             Instant.now()
         }
     }
-    
+
     private fun Instant.toEpochMilliSafe(): Long {
         return try {
             this.toEpochMilli()
@@ -118,7 +118,7 @@ object RequestsMappers {
         totalWeightKg = totalWeightKg.toBigDecimal(),
         quantity = quantity,
         fragile = fragile,
-        notes = notes,
+        notes = notes ?: "",  // ✅ Convertir null a string vacío
         position = position,
         images = images.map { it.toDomain() }
     )
