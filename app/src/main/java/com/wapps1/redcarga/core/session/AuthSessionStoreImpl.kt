@@ -47,14 +47,13 @@ class AuthSessionStoreImpl @Inject constructor(
     private val _currentUsername = MutableStateFlow<String?>(null)
     override val currentUsername: StateFlow<String?> = _currentUsername.asStateFlow()
 
-    // ---- helpers
     private fun List<RoleCode>.toUserType(): UserType? = when {
         isEmpty() -> null
         contains(RoleCode.PROVIDER) -> UserType.PROVIDER
         contains(RoleCode.CLIENT) -> UserType.CLIENT
         else -> null
     }
-    
+
     private fun List<RoleCode>.toWebSocketUserType(): WebSocketUserType? = when {
         isEmpty() -> null
         contains(RoleCode.PROVIDER) -> WebSocketUserType.PROVIDER
@@ -79,38 +78,58 @@ class AuthSessionStoreImpl @Inject constructor(
     }
 
     private suspend fun emitFromStorageOrSignedOut() {
+        Log.d("AuthSessionStore", "🔍 emitFromStorageOrSignedOut() - Verificando almacenamiento...")
+
         val app = secure.getAppSession()
+        Log.d("AuthSessionStore", "   AppSession obtenido: ${if (app != null) "✅ EXISTE" else "❌ NULL"}")
+
+        if (app != null) {
+            val expired = isExpired(app.expiresAt)
+            Log.d("AuthSessionStore", "   AppSession expirado: $expired (expiresAt=${app.expiresAt})")
+            Log.d("AuthSessionStore", "   AppSession companyId: ${app.companyId}")
+            Log.d("AuthSessionStore", "   AppSession roles: ${app.roles}")
+        }
+
         if (app != null && !isExpired(app.expiresAt)) {
             _sessionState.value = SessionState.AppSignedIn(app)
             _currentUserType.value = app.roles.toUserType()
             _currentCompanyId.value = app.companyId
             _currentUsername.value = getCurrentUsername()
+            Log.d("AuthSessionStore", "📦 ✅ Sesión APP restaurada - CompanyId: ${app.companyId}, UserType: ${app.roles.toUserType()}")
             return
         }
+
         val fb = secure.getFirebaseSession()
+        Log.d("AuthSessionStore", "   FirebaseSession obtenido: ${if (fb != null) "✅ EXISTE" else "❌ NULL"}")
+
         if (fb != null && !isExpired(fb.expiresAt)) {
             _sessionState.value = SessionState.FirebaseOnly(fb)
             _currentUserType.value = null
             _currentCompanyId.value = null
             _currentUsername.value = null
+            Log.d("AuthSessionStore", "🔥 Solo sesión Firebase - Sin companyId (necesita app login)")
         } else {
             _sessionState.value = SessionState.SignedOut
             _currentUserType.value = null
             _currentCompanyId.value = null
             _currentUsername.value = null
+            Log.d("AuthSessionStore", "🚪 Sin sesión - Usuario debe hacer login")
         }
     }
 
     override suspend fun bootstrap() {
+        Log.d("AuthSessionStore", "🚀 bootstrap() llamado")
         emitFromStorageOrSignedOut()
+        Log.d("AuthSessionStore", "🚀 bootstrap() completado - currentCompanyId=${_currentCompanyId.value}, userType=${_currentUserType.value}")
     }
 
     override suspend fun signInManually(
-        email: Email, 
-        password: Password, 
-        platform: Platform, 
+        email: Email,
+        password: String,  // ✅ String sin validación para login
+        platform: Platform,
         ip: String
     ) {
+        // En login NO validamos la contraseña (ya existe en el backend)
         val fb = firebase.signInWithPassword(email, password)
         secure.saveFirebaseSession(fb)
         _sessionState.value = SessionState.FirebaseOnly(fb)
@@ -128,51 +147,43 @@ class AuthSessionStoreImpl @Inject constructor(
     }
 
     override suspend fun tryAppLogin(platform: Platform, ip: String) {
-        Log.d("AuthSessionStore", "🚀 Iniciando login de aplicación...")
-        Log.d("AuthSessionStore", "📱 Plataforma: $platform")
-        Log.d("AuthSessionStore", "🌐 IP: $ip")
-        
+
         val fb = secure.getFirebaseSession()
             ?: throw IllegalStateException("No Firebase session for app login")
-        
-        Log.d("AuthSessionStore", "✅ Sesión Firebase encontrada")
-        
-        // AuthRemoteRepositoryImpl ya persiste AppSession + AccountSnapshot
+
+
         val app = auth.login(AppLoginRequest(platform, ip))
-        
-        Log.d("AuthSessionStore", "✅ Login backend exitoso")
-        Log.d("AuthSessionStore", "🔑 Token obtenido: ${app.accessToken.take(20)}...")
-        Log.d("AuthSessionStore", "👤 Roles: ${app.roles}")
-        Log.d("AuthSessionStore", "🏢 Company ID: ${app.companyId}")
+
+        // ✅ GUARDAR el AppSession en secure storage
+        secure.saveAppSession(app)
 
         _sessionState.value = SessionState.AppSignedIn(app)
         _currentUserType.value = app.roles.toUserType()
         _currentCompanyId.value = app.companyId
         _currentUsername.value = getCurrentUsername()
-        
-        // 🆕 CONECTAR WEBSOCKET INMEDIATAMENTE DESPUÉS DEL LOGIN
+
+        Log.d("AuthSessionStore", "🔐 App login exitoso - CompanyId: ${app.companyId}, UserType: ${app.roles.toUserType()}")
+
         val webSocketUserType = app.roles.toWebSocketUserType()
         if (webSocketUserType != null) {
-            Log.d("AuthSessionStore", "🔌 Conectando WebSocket para usuario: $webSocketUserType")
+            Log.d("AuthSessionStore", "🔌 Conectando WebSocket para $webSocketUserType con companyId=${app.companyId}")
             webSocketManager.connect(
                 iamToken = app.accessToken,
                 userType = webSocketUserType,
                 companyId = app.companyId
             )
-            
-            Log.d("AuthSessionStore", "✅ WebSocket iniciado correctamente")
+
         } else {
             Log.w("AuthSessionStore", "⚠️ No se pudo determinar el tipo de usuario para WebSocket")
         }
     }
 
     override suspend fun logout() {
-        Log.d("AuthSessionStore", "🚪 Iniciando logout...")
-        
-        // Desconectar WebSocket
-        Log.d("AuthSessionStore", "🔌 Desconectando WebSocket...")
+
+
+
         webSocketManager.disconnect()
-        
+
         secure.clearAppSession()
         secure.clearFirebaseSession()
         local.clearAllAuthData()
@@ -180,7 +191,7 @@ class AuthSessionStoreImpl @Inject constructor(
         _currentUserType.value = null
         _currentCompanyId.value = null
         _currentUsername.value = null
-        
-        Log.d("AuthSessionStore", "✅ Logout completado")
+
+
     }
 }

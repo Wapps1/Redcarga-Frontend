@@ -10,7 +10,7 @@ data class RequestItemDto(
     val totalWeightKg: Double,
     val quantity: Int,
     val fragile: Boolean,
-    val notes: String,
+    val notes: String?,  // ✅ Ahora acepta null
     val position: Int,
     val images: List<RequestImageDto>
 )

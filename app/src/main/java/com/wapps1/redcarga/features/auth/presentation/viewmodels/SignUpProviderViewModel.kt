@@ -125,8 +125,8 @@ class SignUpProviderViewModel @Inject constructor(
     fun onOpenVerificationLink() {
         val raw = _ui.value.verificationLink
         val link = raw
-            .replace("http://localhost:8080", "http://10.0.2.2:8080")
-            .replace("https://localhost:8080", "http://10.0.2.2:8080")
+            .replace("http://localhost:8080", "https://redcargabk-b4b7cng3ftb2bfea.canadacentral-01.azurewebsites.net")
+            .replace("https://localhost:8080", "https://redcargabk-b4b7cng3ftb2bfea.canadacentral-01.azurewebsites.net")
         if (link.isNotBlank()) viewModelScope.launch { _effect.emit(Effect.OpenUrl(link)) }
     }
 
@@ -138,7 +138,7 @@ class SignUpProviderViewModel @Inject constructor(
         viewModelScope.launch {
             _ui.update { it.copy(loading = true, error = null) }
             runCatching {
-                val fb = firebaseAuth.signInWithPassword(Email(s.email), Password(s.password))
+                val fb = firebaseAuth.signInWithPassword(Email(s.email), s.password)  // ✅ String directo
                 store.setFirebaseSession(fb)
 
                 identityRemote.verifyAndCreatePerson(

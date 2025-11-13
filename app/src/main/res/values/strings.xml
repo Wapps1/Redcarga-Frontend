@@ -426,4 +426,29 @@
     <string name="sample_request_5_weight">8.5 kg</string>
     <string name="sample_request_5_items">4 items</string>
     <string name="sample_request_5_date">5 Ene</string>
+    
+    <!-- Client Deals Screen -->
+    <string name="client_deals_title">Cotizaciones</string>
+    <string name="client_deals_tab_all">Todas</string>
+    <string name="client_deals_tab_in_deal">En trato</string>
+    <string name="client_deals_tab_in_progress">En Marcha</string>
+    <string name="client_deals_select_request">Selecciona una solicitud</string>
+    <string name="client_deals_request_day">Día:</string>
+    <string name="client_deals_request_origin">Origen:</string>
+    <string name="client_deals_request_destination">Destino:</string>
+    <string name="client_deals_search_placeholder">Buscar cotizaciones</string>
+    <string name="client_deals_quote_made_by">ha realizado una cotización</string>
+    <string name="client_deals_quote_for">para %1$s</string>
+    <string name="client_deals_company_rating">Calificación de la empresa</string>
+    <string name="client_deals_price_proposed">Precio propuesto</string>
+    <string name="client_deals_button_details">Detalles</string>
+    <string name="client_deals_button_actions">Acciones</string>
+    <string name="client_deals_button_chat">Ir al chat</string>
+    <string name="client_deals_tag_new">Nuevo</string>
+    <string name="client_deals_empty_title">No hay cotizaciones</string>
+    <string name="client_deals_empty_subtitle">Las cotizaciones aparecerán aquí cuando los proveedores respondan a tus solicitudes</string>
+    <string name="client_deals_loading">Cargando cotizaciones…</string>
+    <string name="client_deals_error_title">Error al cargar</string>
+    <string name="client_deals_error_subtitle">No se pudieron cargar las cotizaciones. Intenta nuevamente.</string>
+    <string name="client_deals_retry">Reintentar</string>
 </resources>

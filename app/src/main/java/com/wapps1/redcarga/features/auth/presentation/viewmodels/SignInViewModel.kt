@@ -49,7 +49,7 @@ class SignInViewModel @Inject constructor(
 
                 // Paso 1: Firebase login
                 Log.d("SignInViewModel", "🔥 Paso 1: Firebase login")
-                store.signInManually(Email(s.email), Password(s.password), platform, ip)
+                store.signInManually(Email(s.email), s.password, platform, ip)  // ✅ String directo, sin validación
                 Log.d("SignInViewModel", "✅ Firebase login exitoso")
 
                 // Paso 2: Backend login + WebSocket connection

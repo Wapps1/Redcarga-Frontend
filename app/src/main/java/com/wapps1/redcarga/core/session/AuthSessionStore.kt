@@ -24,10 +24,11 @@ interface AuthSessionStore {
 
     /**
      * Sign-in manual (email+password) → Firebase → /iam/login → persist & emitir estado
+     * Nota: password es String sin validación porque en login la contraseña ya existe en el backend
      */
     suspend fun signInManually(
         email: Email, 
-        password: Password, 
+        password: String,  // ✅ String sin validación para login
         platform: Platform, 
         ip: String
     )

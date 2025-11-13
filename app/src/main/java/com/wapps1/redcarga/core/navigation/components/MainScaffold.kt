@@ -1,9 +1,12 @@
 package com.wapps1.redcarga.core.navigation.components
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -14,25 +17,23 @@ import com.wapps1.redcarga.features.home.presentation.views.ClientHomeScreen
 import com.wapps1.redcarga.features.home.presentation.views.ProviderHomeScreen
 import com.wapps1.redcarga.features.requests.presentation.views.ClientRequestsScreen
 import com.wapps1.redcarga.features.requests.presentation.views.CreateRequestScreen
+import com.wapps1.redcarga.features.deals.presentation.views.ClientDealsScreen
+import com.wapps1.redcarga.features.auth.presentation.views.UserProfileScreen
+import com.wapps1.redcarga.features.requests.presentation.views.ProviderIncomingRequestsScreen
 
-/**
- * Scaffold principal con barra de navegación inferior persistente
- * Se adapta según el tipo de usuario (Cliente/Proveedor)
- */
+@SuppressLint("UnrememberedGetBackStackEntry")
 @Composable
 fun MainScaffold(
     userType: UserType,
     modifier: Modifier = Modifier
 ) {
     val navController = rememberNavController()
-    
-    // Determinar items de navegación según tipo de usuario
+
     val navItems = when (userType) {
         UserType.CLIENT -> BottomNavItem.getClientItems()
         UserType.PROVIDER -> BottomNavItem.getProviderItems()
     }
-    
-    // Ruta inicial según tipo de usuario
+
     val startDestination = when (userType) {
         UserType.CLIENT -> BottomNavItem.ClientHome.route
         UserType.PROVIDER -> BottomNavItem.ProviderHome.route
@@ -41,10 +42,17 @@ fun MainScaffold(
     Scaffold(
         modifier = modifier,
         bottomBar = {
-            BottomNavigationBar(
-                navController = navController,
-                items = navItems
-            )
+            if (userType == UserType.CLIENT) {
+                ClientBottomNavigationBar(
+                    navController = navController,
+                    items = navItems
+                )
+            } else {
+                BottomNavigationBar(
+                    navController = navController,
+                    items = navItems
+                )
+            }
         }
     ) { paddingValues ->
         NavHost(
@@ -53,7 +61,6 @@ fun MainScaffold(
             modifier = Modifier.padding(paddingValues)
         ) {
             if (userType == UserType.CLIENT) {
-                // Rutas para Cliente
                 composable(BottomNavItem.ClientHome.route) {
                     ClientHomeScreen(
                         onNavigateToRequests = {
@@ -65,7 +72,11 @@ fun MainScaffold(
                     )
                 }
                 composable(BottomNavItem.ClientQuotes.route) {
-                    PlaceholderScreen(title = "Cotizaciones")
+                    ClientDealsScreen(
+                        onBack = { navController.popBackStack() },
+                        onOpenChat = { /* Navegar a chat cuando exista */ },
+                        onOpenQuoteDetails = { /* Navegar a detalles cuando exista */ }
+                    )
                 }
                 composable(BottomNavItem.ClientRequest.route) {
                     ClientRequestsScreen(
@@ -81,22 +92,49 @@ fun MainScaffold(
                     PlaceholderScreen(title = "Chat")
                 }
                 composable(BottomNavItem.ClientProfile.route) {
-                    PlaceholderScreen(title = "Perfil")
+                    UserProfileScreen(
+                        onLogout = { navController.popBackStack() }
+                    )
                 }
-                
-                // Rutas adicionales para Cliente (fuera del bottom nav)
+
                 composable("client_create_request") {
+                    val viewModel: com.wapps1.redcarga.features.requests.presentation.viewmodels.CreateRequestViewModel =
+                        hiltViewModel()
+
                     CreateRequestScreen(
+                        viewModel = viewModel,
                         onBack = {
                             navController.popBackStack()
                         },
-                        onSaved = {
+                        onNext = {
+                            navController.navigate("client_request_summary")
+                        }
+                    )
+                }
+
+                composable("client_request_summary") { _ ->
+                    val parentEntry = remember {
+                        navController.getBackStackEntry("client_create_request")
+                    }
+                    val viewModel: com.wapps1.redcarga.features.requests.presentation.viewmodels.CreateRequestViewModel =
+                        hiltViewModel(parentEntry)
+
+                    com.wapps1.redcarga.features.requests.presentation.views.RequestSummaryScreen(
+                        viewModel = viewModel,
+                        onBack = {
                             navController.popBackStack()
+                        },
+                        onSubmit = {
+                            // Navegar a ClientDealsScreen después de crear la solicitud
+                            navController.navigate(BottomNavItem.ClientQuotes.route) {
+                                popUpTo(BottomNavItem.ClientHome.route) {
+                                    inclusive = false
+                                }
+                            }
                         }
                     )
                 }
             } else {
-                // Rutas para Proveedor
                 composable(BottomNavItem.ProviderHome.route) {
                     ProviderHomeScreen(
                         onNavigateToRoutes = {
@@ -111,7 +149,11 @@ fun MainScaffold(
                     )
                 }
                 composable(BottomNavItem.ProviderRequests.route) {
-                    PlaceholderScreen(title = "Solicitudes")
+                    ProviderIncomingRequestsScreen(
+                        onQuote = { requestId ->
+                            // TODO: Navegar a pantalla de cotización con requestId
+                        }
+                    )
                 }
                 composable(BottomNavItem.ProviderGeo.route) {
                     PlaceholderScreen(title = "Rutas")
@@ -120,10 +162,10 @@ fun MainScaffold(
                     PlaceholderScreen(title = "Chat")
                 }
                 composable(BottomNavItem.ProviderProfile.route) {
-                    PlaceholderScreen(title = "Perfil")
+                    UserProfileScreen(
+                        onLogout = { navController.popBackStack() }
+                    )
                 }
-                
-                // Rutas adicionales para Proveedor (fuera del bottom nav)
                 composable("routes_management") {
                     com.wapps1.redcarga.features.fleet.presentation.views.RoutesManagement(
                         onNavigateBack = {

@@ -13,5 +13,5 @@ data class AppSession(
     val tokenType: TokenType,
     val status: SessionStatus,
     val roles: List<RoleCode>,
-    val companyId: Long? = null       // Solo presente para usuarios PROVIDER
+    val companyId: Long? = null      
 )

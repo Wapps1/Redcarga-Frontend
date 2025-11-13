@@ -17,11 +17,11 @@ data class RequestItem(
     val images: List<RequestImage>
 ) {
     fun getVolume(): BigDecimal {
-        return heightCm * widthCm * lengthCm
+        return heightCm.multiply(widthCm).multiply(lengthCm)
     }
     
     fun getTotalVolume(): BigDecimal {
-        return getVolume() * quantity.toBigDecimal()
+        return getVolume().multiply(quantity.toBigDecimal())
     }
     
     fun hasImages(): Boolean = images.isNotEmpty()

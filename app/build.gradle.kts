@@ -23,7 +23,7 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
-        buildConfigField("String", "BACKEND_BASE_URL", "\"http://10.0.2.2:8080/\"")
+        buildConfigField("String", "BACKEND_BASE_URL", "\"https://redcargabk-b4b7cng3ftb2bfea.canadacentral-01.azurewebsites.net/\"")
         buildConfigField("String", "FIREBASE_BASE_URL", "\"https://identitytoolkit.googleapis.com/\"")
         buildConfigField("String", "FIREBASE_API_KEY", "\"AIzaSyCg6E_E0KeZqtmTGccKVQg64surOnjhQ-M\"")
     }
@@ -66,6 +66,9 @@ dependencies {
     // Icons
     implementation(libs.compose.icons.font.awesome)
     implementation(libs.compose.icons.feather)
+    
+    // Image Loading
+    implementation(libs.coil.compose)
     
     implementation(libs.androidx.navigation.compose)
     
