@@ -22,6 +22,10 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        
+        buildConfigField("String", "BACKEND_BASE_URL", "\"https://redcargabk-b4b7cng3ftb2bfea.canadacentral-01.azurewebsites.net/\"")
+        buildConfigField("String", "FIREBASE_BASE_URL", "\"https://identitytoolkit.googleapis.com/\"")
+        buildConfigField("String", "FIREBASE_API_KEY", "\"AIzaSyCg6E_E0KeZqtmTGccKVQg64surOnjhQ-M\"")
     }
 
     buildTypes {
@@ -36,12 +40,14 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+        isCoreLibraryDesugaringEnabled = true
     }
     kotlinOptions {
         jvmTarget = "11"
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -55,6 +61,19 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.material.icons.extended)
+    
+    // Icons
+    implementation(libs.compose.icons.font.awesome)
+    implementation(libs.compose.icons.feather)
+    
+    // Image Loading
+    implementation(libs.coil.compose)
+    
+    implementation(libs.androidx.navigation.compose)
+    
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.kotlinx.coroutines.android)
 
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
@@ -63,6 +82,20 @@ dependencies {
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
     implementation(libs.hilt.navigation.compose)
+
+    // Network
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.moshi)
+    implementation(libs.okhttp)
+    implementation(libs.okhttp.logging)
+    implementation(libs.moshi)
+    implementation(libs.moshi.kotlin)
+
+    // Security
+    implementation(libs.security.crypto)
+    
+    // Core Library Desugaring
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
