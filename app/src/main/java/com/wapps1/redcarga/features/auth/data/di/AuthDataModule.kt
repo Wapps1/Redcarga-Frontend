@@ -99,6 +99,38 @@ object AuthDataModule {
             .build()
     }
 
+    /**
+     * ⭐ Cliente especial SOLO para refresh de token (sin interceptor de App para evitar ciclo)
+     * Solo usa Firebase interceptor porque el endpoint /iam/login requiere Firebase token
+     */
+    @Provides @Singleton @Named("tokenRefreshClient")
+    fun provideTokenRefreshClient(
+        @Named("firebaseAuthInterceptor") firebaseInterceptor: Interceptor
+    ): OkHttpClient {
+        val loggingInterceptor = HttpLoggingInterceptor().apply {
+            level = HttpLoggingInterceptor.Level.BODY
+        }
+        return OkHttpClient.Builder()
+            // Solo Firebase interceptor (NO App interceptor para evitar ciclo)
+            .addInterceptor(firebaseInterceptor)
+            .addNetworkInterceptor(loggingInterceptor)
+            .build()
+    }
+
+    /**
+     * ⭐ Retrofit especial para refresh de token (usa cliente sin App interceptor)
+     */
+    @Provides @Singleton @Named("tokenRefreshRetrofit")
+    fun provideTokenRefreshRetrofit(
+        @Named("backendBaseUrl") baseUrl: String,
+        @Named("tokenRefreshClient") client: OkHttpClient,
+        moshi: Moshi
+    ): Retrofit = Retrofit.Builder()
+        .baseUrl(baseUrl)
+        .client(client)
+        .addConverterFactory(MoshiConverterFactory.create(moshi))
+        .build()
+
     @Provides @Singleton @Named("backend")
     fun provideBackendRetrofit(
         @Named("backendBaseUrl") baseUrl: String,

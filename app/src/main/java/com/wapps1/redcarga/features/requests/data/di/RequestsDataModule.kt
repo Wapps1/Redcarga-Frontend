@@ -3,14 +3,18 @@ package com.wapps1.redcarga.features.requests.data.di
 import android.content.Context
 import com.wapps1.redcarga.core.session.AuthSessionStore
 import com.wapps1.redcarga.features.requests.data.local.dao.IncomingRequestsDao
+import com.wapps1.redcarga.features.requests.data.local.dao.QuotesDao
 import com.wapps1.redcarga.features.requests.data.local.dao.RequestsDao
 import com.wapps1.redcarga.features.requests.data.local.db.RequestsDatabase
 import com.wapps1.redcarga.features.requests.data.remote.services.PlanningInboxService
+import com.wapps1.redcarga.features.requests.data.remote.services.QuotesService
 import com.wapps1.redcarga.features.requests.data.remote.services.RequestsService
 import com.wapps1.redcarga.features.requests.data.repositories.PlanningInboxRepositoryImpl
+import com.wapps1.redcarga.features.requests.data.repositories.QuotesRepositoryImpl
 import com.wapps1.redcarga.features.requests.data.repositories.RequestsLocalRepositoryImpl
 import com.wapps1.redcarga.features.requests.data.repositories.RequestsRepositoryImpl
 import com.wapps1.redcarga.features.requests.domain.repositories.PlanningInboxRepository
+import com.wapps1.redcarga.features.requests.domain.repositories.QuotesRepository
 import com.wapps1.redcarga.features.requests.domain.repositories.RequestsLocalRepository
 import com.wapps1.redcarga.features.requests.domain.repositories.RequestsRepository
 import dagger.Module
@@ -85,5 +89,28 @@ object RequestsDataModule {
         inboxDao: IncomingRequestsDao
     ): PlanningInboxRepository {
         return PlanningInboxRepositoryImpl(inboxService, requestsService, inboxDao)
+    }
+    
+    // ========== QUOTES ==========
+    
+    @Provides
+    @Singleton
+    fun provideQuotesDao(database: RequestsDatabase): QuotesDao {
+        return database.quotesDao()
+    }
+    
+    @Provides
+    @Singleton
+    fun provideQuotesService(@Named("backend") retrofit: Retrofit): QuotesService {
+        return retrofit.create(QuotesService::class.java)
+    }
+    
+    @Provides
+    @Singleton
+    fun provideQuotesRepository(
+        quotesService: QuotesService,
+        quotesDao: QuotesDao
+    ): QuotesRepository {
+        return QuotesRepositoryImpl(quotesService, quotesDao)
     }
 }

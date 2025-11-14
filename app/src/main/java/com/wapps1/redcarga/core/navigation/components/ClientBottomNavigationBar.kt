@@ -68,12 +68,25 @@ fun ClientBottomNavigationBar(
                         },
                         selected = isSelected,
                         onClick = {
-                            navController.navigate(item.route) {
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
+                            // Si ya estás en esta ruta, no hacer nada
+                            if (isSelected) {
+                                return@NavigationBarItem
+                            }
+                            
+                            // Intentar hacer pop hasta la ruta destino si está en el back stack
+                            val popped = navController.popBackStack(item.route, inclusive = false)
+                            
+                            // Si no se pudo hacer pop (la ruta no está en el back stack), navegar normalmente
+                            if (!popped) {
+                                navController.navigate(item.route) {
+                                    // Limpiar el back stack hasta el start destination
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                        inclusive = false
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
                                 }
-                                launchSingleTop = true
-                                restoreState = true
                             }
                         },
                         colors = NavigationBarItemDefaults.colors(

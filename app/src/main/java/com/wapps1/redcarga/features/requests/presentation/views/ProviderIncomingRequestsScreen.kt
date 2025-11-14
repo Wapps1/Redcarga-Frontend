@@ -1,6 +1,11 @@
 package com.wapps1.redcarga.features.requests.presentation.views
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -11,6 +16,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,6 +24,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -33,13 +40,16 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
@@ -60,37 +70,42 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProviderIncomingRequestsScreen(
-    onQuote: (Long) -> Unit = {},
+    onQuote: (Long) -> Unit = {}, // Para crear cotización (requestId)
+    onViewQuote: (Long) -> Unit = {}, // ⭐ Para ver cotización existente (quoteId)
     viewModel: com.wapps1.redcarga.features.requests.presentation.viewmodels.ProviderIncomingRequestsViewModel = hiltViewModel()
 ) {
     // Observar datos del ViewModel
     val requests by viewModel.incomingRequests.collectAsState()
+    val quotedRequestIds by viewModel.quotedRequestIds.collectAsState() // ⭐ IDs de solicitudes cotizadas
     val uiState by viewModel.uiState.collectAsState()
     val detailState by viewModel.detailState.collectAsState()
-    
+    val newRequestNotification by viewModel.newRequestNotification.collectAsState()
+    val lastNewRequestId by viewModel.lastNewRequestId.collectAsState()
+
     val tabs = listOf("Todas", "Abiertas", "En Proceso")
     var selectedTabIndex by remember { mutableStateOf(0) }
     var search by remember { mutableStateOf("") }
-    
-    // Filtrar requests basado en tab y búsqueda
-    val filteredRequests = remember(requests, selectedTabIndex, search) {
+
+    // ⭐ Filtrar requests basado en tab y búsqueda (NUEVO FILTRADO CON COTIZACIONES)
+    val filteredRequests = remember(requests, quotedRequestIds, selectedTabIndex, search) {
         val filtered = when (selectedTabIndex) {
-            0 -> requests // Todas
-            1 -> requests.filter { it.isOpen() } // Abiertas
-            2 -> requests.filter { !it.isOpen() } // En Proceso
+            0 -> requests // Todas (cotizadas + no cotizadas)
+            1 -> requests.filter { it.requestId !in quotedRequestIds } // ⭐ Abiertas (NO cotizadas)
+            2 -> requests.filter { it.requestId in quotedRequestIds } // ⭐ En Proceso (YA cotizadas)
             else -> requests
         }
-        filtered.filter { 
-            it.requesterName.contains(search, true) || 
-            it.getRouteDescription().contains(search, true)
+        filtered.filter {
+            it.requesterName.contains(search, true) ||
+                    it.getRouteDescription().contains(search, true)
         }
     }
-    
+
     val isLoading = uiState is com.wapps1.redcarga.features.requests.presentation.viewmodels.ProviderIncomingRequestsViewModel.UiState.Loading
     val hasError = uiState is com.wapps1.redcarga.features.requests.presentation.viewmodels.ProviderIncomingRequestsViewModel.UiState.Error
 
@@ -102,60 +117,90 @@ fun ProviderIncomingRequestsScreen(
             )
         }
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(listOf(Color(0xFFFFF3ED), Color(0xFFFDF7F5)))
-                )
-                .padding(paddingValues)
-                .padding(horizontal = 16.dp)
-        ) {
-            Spacer(modifier = Modifier.height(4.dp))
-            TabRow(selectedTabIndex = selectedTabIndex) {
-                tabs.forEachIndexed { index, label ->
-                    Tab(selected = selectedTabIndex == index, onClick = { selectedTabIndex = index }, text = { Text(label) })
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.verticalGradient(listOf(Color(0xFFFFF3ED), Color(0xFFFDF7F5)))
+                    )
+                    .padding(paddingValues)
+                    .padding(horizontal = 16.dp)
+            ) {
+                Spacer(modifier = Modifier.height(4.dp))
+                TabRow(selectedTabIndex = selectedTabIndex) {
+                    tabs.forEachIndexed { index, label ->
+                        Tab(selected = selectedTabIndex == index, onClick = { selectedTabIndex = index }, text = { Text(label) })
+                    }
                 }
-            }
 
-            Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
-            ElegantSearchBar(value = search, onValueChange = { search = it }, placeholder = "Buscar solicitudes")
+                ElegantSearchBar(value = search, onValueChange = { search = it }, placeholder = "Buscar solicitudes")
 
-            Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
-            when {
-                isLoading -> ProviderLoading()
-                hasError -> ProviderError { viewModel.refreshRequests() }
-                filteredRequests.isEmpty() -> ProviderEmpty()
-                else -> {
-                    AnimatedVisibility(visible = true, enter = fadeIn() + slideInVertically(), exit = fadeOut() + slideOutVertically()) {
-                        LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            items(filteredRequests) { req ->
-                                ProviderRequestCard(
-                                    request = req,
-                                    onQuote = { onQuote(req.requestId) },
-                                    onViewDetails = { viewModel.loadRequestDetails(req.requestId) },
-                                    onDelete = { viewModel.deleteRequest(req.requestId) }
-                                )
+                when {
+                    isLoading -> ProviderLoading()
+                    hasError -> ProviderError { viewModel.refreshRequests() }
+                    filteredRequests.isEmpty() -> ProviderEmpty()
+                    else -> {
+                        AnimatedVisibility(visible = true, enter = fadeIn() + slideInVertically(), exit = fadeOut() + slideOutVertically()) {
+                            LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                items(filteredRequests) { req ->
+                                    val isNew = req.requestId == lastNewRequestId // ⭐ Determinar si es nueva
+                                    val isQuoted = req.requestId in quotedRequestIds // ⭐ Determinar si está cotizada
+                                    ProviderRequestCard(
+                                        request = req,
+                                        onQuote = {
+                                            // ⭐ Si está cotizada, obtener el quoteId y ver cotización
+                                            // Si NO está cotizada, ir a crear cotización
+                                            if (isQuoted) {
+                                                val quoteId = viewModel.getQuoteIdForRequest(req.requestId)
+                                                quoteId?.let { onViewQuote(it) }
+                                            } else {
+                                                onQuote(req.requestId)
+                                            }
+                                        },
+                                        onViewDetails = { viewModel.loadRequestDetails(req.requestId) },
+                                        onDelete = { viewModel.deleteRequest(req.requestId) },
+                                        isNew = isNew, // ⭐ Pasar el estado de nueva
+                                        isQuoted = isQuoted // ⭐ Pasar el estado de cotizada
+                                    )
+                                }
                             }
                         }
                     }
                 }
+            } // ⭐ Cerrar el Column
+
+            // ⭐ NUEVO: Banner flotante para notificaciones
+            AnimatedVisibility(
+                visible = newRequestNotification != null,
+                enter = slideInVertically(initialOffsetY = { -it }) + fadeIn(),
+                exit = slideOutVertically(targetOffsetY = { -it }) + fadeOut(),
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = 8.dp)
+            ) {
+                NewRequestBanner(
+                    message = newRequestNotification ?: "",
+                    onDismiss = { viewModel.dismissNotification() }
+                )
             }
-        }
-        
+        } // ⭐ Cerrar el Box
+
         // Modal de detalles
         if (detailState !is com.wapps1.redcarga.features.requests.presentation.viewmodels.ProviderIncomingRequestsViewModel.DetailState.Idle) {
             com.wapps1.redcarga.features.requests.presentation.views.RequestDetailModal(
                 detailState = when (detailState) {
-                    is com.wapps1.redcarga.features.requests.presentation.viewmodels.ProviderIncomingRequestsViewModel.DetailState.Loading -> 
+                    is com.wapps1.redcarga.features.requests.presentation.viewmodels.ProviderIncomingRequestsViewModel.DetailState.Loading ->
                         com.wapps1.redcarga.features.requests.presentation.viewmodels.ClientRequestsViewModel.DetailState.Loading
-                    is com.wapps1.redcarga.features.requests.presentation.viewmodels.ProviderIncomingRequestsViewModel.DetailState.Success -> 
+                    is com.wapps1.redcarga.features.requests.presentation.viewmodels.ProviderIncomingRequestsViewModel.DetailState.Success ->
                         com.wapps1.redcarga.features.requests.presentation.viewmodels.ClientRequestsViewModel.DetailState.Success(
                             (detailState as com.wapps1.redcarga.features.requests.presentation.viewmodels.ProviderIncomingRequestsViewModel.DetailState.Success).request
                         )
-                    is com.wapps1.redcarga.features.requests.presentation.viewmodels.ProviderIncomingRequestsViewModel.DetailState.Error -> 
+                    is com.wapps1.redcarga.features.requests.presentation.viewmodels.ProviderIncomingRequestsViewModel.DetailState.Error ->
                         com.wapps1.redcarga.features.requests.presentation.viewmodels.ClientRequestsViewModel.DetailState.Error(
                             (detailState as com.wapps1.redcarga.features.requests.presentation.viewmodels.ProviderIncomingRequestsViewModel.DetailState.Error).message
                         )
@@ -198,69 +243,373 @@ private fun ProviderRequestCard(
     request: com.wapps1.redcarga.features.requests.domain.models.IncomingRequestSummary,
     onQuote: () -> Unit,
     onViewDetails: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    isNew: Boolean = false,
+    isQuoted: Boolean = false // ⭐ NUEVO: indica si ya se cotizó
 ) {
     val dateFormatter = remember {
         java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault())
     }
+
+    // Animación de brillo para solicitudes nuevas
+    val infiniteTransition = rememberInfiniteTransition(label = "shimmer")
+    val alpha by infiniteTransition.animateFloat(
+        initialValue = 0.3f,
+        targetValue = 0.8f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1000),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "alpha"
+    )
+
     Card(
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = when {
+                isNew -> 16.dp
+                isQuoted -> 8.dp
+                else -> 4.dp
+            }
+        ),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White
+        ),
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(
+                when {
+                    isNew -> {
+                        Modifier.border(
+                            width = 3.dp,
+                            brush = Brush.horizontalGradient(
+                                colors = listOf(
+                                    Color(0xFFFFC107).copy(alpha = alpha),
+                                    Color(0xFFFFD54F).copy(alpha = alpha)
+                                )
+                            ),
+                            shape = RoundedCornerShape(24.dp)
+                        )
+                    }
+                    isQuoted -> {
+                        Modifier.border(
+                            width = 2.dp,
+                            brush = Brush.horizontalGradient(
+                                colors = listOf(Color(0xFF4CAF50), Color(0xFF66BB6A))
+                            ),
+                            shape = RoundedCornerShape(24.dp)
+                        )
+                    }
+                    else -> Modifier
+                }
+            )
     ) {
-        // Cinta superior
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(6.dp)
-                .background(
-                    Brush.horizontalGradient(listOf(Color(0xFFFF8A65), Color(0xFFFF7043))),
-                    RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp)
-                )
-        )
+        Column(modifier = Modifier.fillMaxWidth()) {
+            // ⭐ NUEVO: Cinta superior elegante con gradiente
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(8.dp)
+                    .background(
+                        brush = when {
+                            isNew -> Brush.horizontalGradient(
+                                listOf(Color(0xFFFFC107), Color(0xFFFFD54F), Color(0xFFFFC107))
+                            )
+                            isQuoted -> Brush.horizontalGradient(
+                                listOf(Color(0xFF4CAF50), Color(0xFF66BB6A), Color(0xFF81C784))
+                            )
+                            else -> Brush.horizontalGradient(
+                                listOf(Color(0xFFFF8A65), Color(0xFFFF7043))
+                            )
+                        },
+                        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+                    )
+            )
 
-        Column(modifier = Modifier.padding(12.dp)) {
-            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    modifier = Modifier.size(32.dp).background(Color(0xFFFFEDE6), CircleShape),
-                    contentAlignment = Alignment.Center
+            // ⭐ CONTENIDO PRINCIPAL REDISEÑADO
+            Column(modifier = Modifier.padding(20.dp)) {
+                // Header con avatar y nombre
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(text = request.requesterName.take(1), fontWeight = FontWeight.Bold, color = Color(0xFFFF6F4E))
+                    // Avatar circular elegante
+                    Box(
+                        modifier = Modifier
+                            .size(56.dp)
+                            .background(
+                                brush = when {
+                                    isNew -> Brush.radialGradient(
+                                        colors = listOf(Color(0xFFFFC107), Color(0xFFFFD54F))
+                                    )
+                                    isQuoted -> Brush.radialGradient(
+                                        colors = listOf(Color(0xFF4CAF50), Color(0xFF66BB6A))
+                                    )
+                                    else -> Brush.radialGradient(
+                                        colors = listOf(Color(0xFFFF8A65), Color(0xFFFF7043))
+                                    )
+                                },
+                                shape = CircleShape
+                            )
+                            .border(3.dp, Color.White, CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = request.requesterName.take(1).uppercase(),
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = Color.White
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(16.dp))
+
+                    // Info del solicitante
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = request.requesterName,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF2C3E50)
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            // Badge de estado
+                            Box(
+                                modifier = Modifier
+                                    .background(
+                                        brush = when {
+                                            isQuoted -> Brush.horizontalGradient(
+                                                listOf(Color(0xFF4CAF50), Color(0xFF66BB6A))
+                                            )
+                                            isNew -> Brush.horizontalGradient(
+                                                listOf(Color(0xFFFFC107), Color(0xFFFFD54F))
+                                            )
+                                            else -> Brush.horizontalGradient(
+                                                listOf(Color(0xFFFF8A65), Color(0xFFFF7043))
+                                            )
+                                        },
+                                        shape = RoundedCornerShape(12.dp)
+                                    )
+                                    .padding(horizontal = 12.dp, vertical = 6.dp)
+                            ) {
+                                Text(
+                                    text = when {
+                                        isQuoted -> "COTIZADA ✓"
+                                        isNew -> "NUEVA ⭐"
+                                        else -> request.status.name
+                                    },
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = Color.White,
+                                    letterSpacing = 0.5.sp
+                                )
+                            }
+                        }
+                    }
                 }
-                Spacer(modifier = Modifier.size(8.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(text = "Solicitud de ${request.requesterName}", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    Text(text = request.getRouteDescription(), style = MaterialTheme.typography.bodySmall, color = Color.DarkGray)
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // Ruta con iconos elegantes
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    color = Color(0xFFF8F9FA)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Icono de ubicación origen
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .background(
+                                    Color(0xFF3498DB).copy(alpha = 0.1f),
+                                    CircleShape
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("📍", fontSize = 20.sp)
+                        }
+
+                        Spacer(modifier = Modifier.width(12.dp))
+
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = request.getRouteDescription(),
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = Color(0xFF2C3E50),
+                                lineHeight = 20.sp
+                            )
+                        }
+                    }
                 }
-                TagChip(text = request.status.name)
-            }
 
-            Spacer(Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text("Items: ${request.totalQuantity}", style = MaterialTheme.typography.bodySmall)
-                    Text("Ruta: #${request.matchedRouteId}", style = MaterialTheme.typography.bodySmall)
+                // Info cards compactas
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    // Items
+                    MiniInfoCard(
+                        icon = "📦",
+                        label = "Items",
+                        value = "${request.totalQuantity}",
+                        modifier = Modifier.weight(1f),
+                        color = Color(0xFF9C27B0)
+                    )
+
+                    // Ruta ID
+                    MiniInfoCard(
+                        icon = "🛣️",
+                        label = "Ruta",
+                        value = "#${request.matchedRouteId}",
+                        modifier = Modifier.weight(1f),
+                        color = Color(0xFF2196F3)
+                    )
+
+                    // Fecha
+                    MiniInfoCard(
+                        icon = "📅",
+                        label = "Fecha",
+                        value = dateFormatter.format(java.util.Date.from(request.createdAt)),
+                        modifier = Modifier.weight(1f),
+                        color = Color(0xFFFF9800)
+                    )
                 }
-                Text("Fecha: ${dateFormatter.format(java.util.Date.from(request.createdAt))}", style = MaterialTheme.typography.bodySmall)
-            }
 
-            Spacer(Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(20.dp))
 
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                TextButton(
-                    onClick = onViewDetails,
-                    modifier = Modifier
-                        .weight(1f)
-                        .border(1.dp, Color(0xFFDDDDDD), RoundedCornerShape(10.dp))
-                ) { Text("Ver más", style = MaterialTheme.typography.labelMedium) }
-                GradientActionButton(text = "Cotizar", onClick = onQuote, modifier = Modifier.weight(1f), textStyle = MaterialTheme.typography.labelMedium)
+                // ⭐ BOTONES DE ACCIÓN REDISEÑADOS
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    // Botón "Ver Detalles" con diseño elegante
+                    OutlinedButton(
+                        onClick = onViewDetails,
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(50.dp),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = Color.Transparent,
+                            contentColor = Color(0xFF6C757D)
+                        ),
+                        border = androidx.compose.foundation.BorderStroke(
+                            2.dp,
+                            Color(0xFFE0E0E0)
+                        )
+                    ) {
+                        Text(
+                            "Ver Detalles",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+
+                    // Botón principal condicional
+                    if (isQuoted) {
+                        // Botón "Ver Cotización" - Diseño verde premium
+                        Button(
+                            onClick = onQuote,
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(50.dp),
+                            shape = RoundedCornerShape(14.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color.Transparent
+                            ),
+                            contentPadding = PaddingValues(0.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(
+                                        brush = Brush.horizontalGradient(
+                                            colors = listOf(
+                                                Color(0xFF4CAF50),
+                                                Color(0xFF66BB6A)
+                                            )
+                                        ),
+                                        shape = RoundedCornerShape(14.dp)
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Center
+                                ) {
+                                    Text(
+                                        "💰",
+                                        fontSize = 18.sp
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(
+                                        "Ver Cotización",
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.White
+                                    )
+                                }
+                            }
+                        }
+                    } else {
+                        // Botón "Cotizar" - Diseño naranja premium
+                        Button(
+                            onClick = onQuote,
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(50.dp),
+                            shape = RoundedCornerShape(14.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color.Transparent
+                            ),
+                            contentPadding = PaddingValues(0.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(
+                                        brush = Brush.horizontalGradient(
+                                            colors = listOf(
+                                                Color(0xFFFF8A65),
+                                                Color(0xFFFF7043)
+                                            )
+                                        ),
+                                        shape = RoundedCornerShape(14.dp)
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Center
+                                ) {
+                                    Text(
+                                        "✍️",
+                                        fontSize = 18.sp
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(
+                                        "Cotizar",
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.White
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }
 }
-
-// ---------- Utilidades de UI (copiadas/ajustadas del estilo de ClientDealsScreen) ----------
 
 @Composable
 private fun ElegantSearchBar(
@@ -310,6 +659,46 @@ private fun ElegantSearchBar(
     }
 }
 
+/**
+ * Mini card para mostrar información compacta con icono
+ */
+@Composable
+private fun MiniInfoCard(
+    icon: String,
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier,
+    color: Color
+) {
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(12.dp),
+        color = color.copy(alpha = 0.1f)
+    ) {
+        Column(
+            modifier = Modifier.padding(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = icon,
+                fontSize = 20.sp
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = value,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                color = color
+            )
+            Text(
+                text = label,
+                fontSize = 10.sp,
+                color = Color(0xFF6C757D)
+            )
+        }
+    }
+}
+
 @Composable
 private fun TagChip(text: String) {
     Box(
@@ -334,6 +723,86 @@ private fun GradientActionButton(text: String, onClick: () -> Unit, modifier: Mo
         contentAlignment = Alignment.Center
     ) {
         Text(text = text, color = Color.White, fontWeight = FontWeight.SemiBold, style = textStyle)
+    }
+}
+
+/**
+ * Banner flotante hermoso que aparece cuando llega una nueva solicitud
+ */
+@Composable
+private fun NewRequestBanner(
+    message: String,
+    onDismiss: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth(0.95f)
+            .padding(top = 12.dp, start = 8.dp, end = 8.dp),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFF4CAF50) // Verde vibrante
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 12.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    Brush.horizontalGradient(
+                        colors = listOf(Color(0xFF4CAF50), Color(0xFF66BB6A))
+                    )
+                )
+                .padding(horizontal = 16.dp, vertical = 14.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(
+                modifier = Modifier.weight(1f),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // Ícono animado
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .background(Color.White.copy(alpha = 0.3f), CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Refresh,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(22.dp)
+                    )
+                }
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = message,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    Text(
+                        text = "Toca para ver",
+                        color = Color.White.copy(alpha = 0.85f),
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            }
+
+            androidx.compose.material3.IconButton(
+                onClick = onDismiss,
+                modifier = Modifier.size(32.dp)
+            ) {
+                androidx.compose.material3.Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Cerrar",
+                    tint = Color.White,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        }
     }
 }
 

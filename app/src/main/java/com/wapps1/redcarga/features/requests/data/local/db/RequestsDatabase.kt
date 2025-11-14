@@ -5,8 +5,9 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import android.content.Context
-import com.wapps1.redcarga.features.requests.data.local.dao.RequestsDao
 import com.wapps1.redcarga.features.requests.data.local.dao.IncomingRequestsDao
+import com.wapps1.redcarga.features.requests.data.local.dao.QuotesDao
+import com.wapps1.redcarga.features.requests.data.local.dao.RequestsDao
 import com.wapps1.redcarga.features.requests.data.local.entities.*
 
 @Database(
@@ -14,15 +15,17 @@ import com.wapps1.redcarga.features.requests.data.local.entities.*
         RequestEntity::class,
         RequestItemEntity::class,
         RequestImageEntity::class,
-        IncomingRequestEntity::class
+        IncomingRequestEntity::class,
+        QuoteSummaryEntity::class // ⭐ NUEVA TABLA
     ],
-    version = 2, // Incrementar versión por nueva entidad
+    version = 3, // ⭐ Incrementar versión por nueva entidad
     exportSchema = false
 )
 @TypeConverters()
 abstract class RequestsDatabase : RoomDatabase() {
     abstract fun requestsDao(): RequestsDao
     abstract fun incomingRequestsDao(): IncomingRequestsDao
+    abstract fun quotesDao(): QuotesDao // ⭐ NUEVO DAO
 
     companion object {
         @Volatile
