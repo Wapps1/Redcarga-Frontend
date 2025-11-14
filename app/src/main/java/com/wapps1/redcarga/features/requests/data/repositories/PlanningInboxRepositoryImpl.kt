@@ -46,9 +46,22 @@ class PlanningInboxRepositoryImpl @Inject constructor(
             val dtos = inboxService.getRequestInbox(companyId)
 
             Log.d(TAG, "✅ Backend respondió: ${dtos.size} solicitudes")
-            if (dtos.isNotEmpty()) {
-                Log.d(TAG, "   Primera solicitud: requestId=${dtos.first().requestId}, requester=${dtos.first().requesterName}")
+            Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+            Log.d(TAG, "📋 LISTA COMPLETA DE SOLICITUDES ENTRANTES:")
+            Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+            dtos.forEachIndexed { index, dto ->
+                Log.d(TAG, "[$index] RequestID: ${dto.requestId}")
+                Log.d(TAG, "    ├─ Solicitante: ${dto.requesterName}")
+                Log.d(TAG, "    ├─ Estado: ${dto.status}")
+                Log.d(TAG, "    ├─ Ruta: ${dto.originProvinceName} → ${dto.destProvinceName}")
+                Log.d(TAG, "    ├─ Items: ${dto.totalQuantity}")
+                Log.d(TAG, "    ├─ RouteId: ${dto.matchedRouteId}")
+                Log.d(TAG, "    └─ Fecha: ${dto.createdAt}")
+                Log.d(TAG, "")
             }
+            Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+            Log.d(TAG, "💡 TIP: Si ya cotizaste alguna, NO debería aparecer aquí")
+            Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
             // Convertir a entities
             Log.d(TAG, "💾 Convirtiendo ${dtos.size} DTOs a entities...")

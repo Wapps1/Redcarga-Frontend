@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -74,7 +75,13 @@ fun MainScaffold(
                 composable(BottomNavItem.ClientQuotes.route) {
                     ClientDealsScreen(
                         onBack = { navController.popBackStack() },
-                        onOpenChat = { /* Navegar a chat cuando exista */ },
+                        onOpenChat = { 
+                            // Navegar a Chat normalmente, sin modificar el back stack
+                            // El bottom bar manejará correctamente el retorno
+                            navController.navigate(BottomNavItem.ClientChat.route) {
+                                launchSingleTop = true
+                            }
+                        },
                         onOpenQuoteDetails = { /* Navegar a detalles cuando exista */ }
                     )
                 }
@@ -151,9 +158,46 @@ fun MainScaffold(
                 composable(BottomNavItem.ProviderRequests.route) {
                     ProviderIncomingRequestsScreen(
                         onQuote = { requestId ->
-                            // TODO: Navegar a pantalla de cotización con requestId
+                            navController.navigate("provider_create_quote/$requestId")
+                        },
+                        onViewQuote = { quoteId -> // ⭐ Nueva navegación para ver cotización
+                            navController.navigate("provider_view_quote/$quoteId")
                         }
                     )
+                }
+                composable("provider_create_quote/{requestId}") { backStackEntry ->
+                    val requestId = backStackEntry.arguments?.getString("requestId")?.toLongOrNull()
+                    if (requestId != null) {
+                        com.wapps1.redcarga.features.requests.presentation.views.CreateQuoteScreen(
+                            requestId = requestId,
+                            onNavigateBack = {
+                                navController.popBackStack()
+                            }
+                        )
+                    } else {
+                        // Error: requestId inválido, volver atrás
+                        LaunchedEffect(Unit) {
+                            navController.popBackStack()
+                        }
+                    }
+                }
+                
+                // ⭐ Nueva ruta para VER cotización existente
+                composable("provider_view_quote/{quoteId}") { backStackEntry ->
+                    val quoteId = backStackEntry.arguments?.getString("quoteId")?.toLongOrNull()
+                    if (quoteId != null) {
+                        com.wapps1.redcarga.features.requests.presentation.views.ViewQuoteScreen(
+                            quoteId = quoteId,
+                            onNavigateBack = {
+                                navController.popBackStack()
+                            }
+                        )
+                    } else {
+                        // Error: quoteId inválido, volver atrás
+                        LaunchedEffect(Unit) {
+                            navController.popBackStack()
+                        }
+                    }
                 }
                 composable(BottomNavItem.ProviderGeo.route) {
                     PlaceholderScreen(title = "Rutas")
