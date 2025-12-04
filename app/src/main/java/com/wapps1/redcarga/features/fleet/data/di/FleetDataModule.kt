@@ -2,6 +2,9 @@ package com.wapps1.redcarga.features.fleet.data.di
 
 import android.content.Context
 import androidx.room.Room
+import com.wapps1.redcarga.features.auth.data.remote.services.AuthService
+import com.wapps1.redcarga.features.auth.data.remote.services.IdentityService
+import com.wapps1.redcarga.features.auth.domain.repositories.FirebaseAuthRepository
 import com.wapps1.redcarga.features.fleet.data.local.db.FleetDatabase
 import com.wapps1.redcarga.features.fleet.data.remote.services.*
 import com.wapps1.redcarga.features.fleet.domain.repositories.*
@@ -22,6 +25,10 @@ object FleetDataModule {
     @Provides @Singleton
     fun provideFleetDriversService(@Named("backend") r: Retrofit): FleetDriversService =
         r.create(FleetDriversService::class.java)
+    
+    @Provides @Singleton
+    fun provideProvidersService(@Named("backend") r: Retrofit): ProvidersService =
+        r.create(ProvidersService::class.java)
 
     @Provides @Singleton
     fun provideFleetVehiclesService(@Named("backend") r: Retrofit): FleetVehiclesService =

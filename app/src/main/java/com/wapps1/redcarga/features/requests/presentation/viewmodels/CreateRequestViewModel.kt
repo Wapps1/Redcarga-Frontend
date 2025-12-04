@@ -1,11 +1,13 @@
 package com.wapps1.redcarga.features.requests.presentation.viewmodels
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.wapps1.redcarga.features.fleet.domain.models.geo.Department
 import com.wapps1.redcarga.features.fleet.domain.models.geo.GeoCatalog
 import com.wapps1.redcarga.features.fleet.domain.models.geo.Province
 import com.wapps1.redcarga.features.fleet.domain.repositories.GeoRepository
+import com.wapps1.redcarga.features.requests.domain.repositories.MediaRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -18,7 +20,8 @@ import javax.inject.Inject
 @HiltViewModel
 class CreateRequestViewModel @Inject constructor(
     private val geoRepository: GeoRepository,
-    private val requestsRepository: com.wapps1.redcarga.features.requests.domain.repositories.RequestsRepository
+    private val requestsRepository: com.wapps1.redcarga.features.requests.domain.repositories.RequestsRepository,
+    private val mediaRepository: MediaRepository
 ) : ViewModel() {
 
     // Estados de la solicitud
@@ -353,6 +356,45 @@ class CreateRequestViewModel @Inject constructor(
         _destinationDistrict.value = ""
         _paymentOnDelivery.value = false
         _items.value = emptyList()
+    }
+
+    // Estados para subida de imágenes
+    sealed class ImageUploadState {
+        object Idle : ImageUploadState()
+        object Uploading : ImageUploadState()
+        data class Success(val imageUrl: String) : ImageUploadState()
+        data class Error(val message: String) : ImageUploadState()
+    }
+
+    private val _imageUploadState = MutableStateFlow<ImageUploadState>(ImageUploadState.Idle)
+    val imageUploadState: StateFlow<ImageUploadState> = _imageUploadState.asStateFlow()
+
+    /**
+     * Sube una imagen al servidor y retorna la URL segura
+     */
+    fun uploadImage(imageUri: Uri) {
+        viewModelScope.launch {
+            try {
+                _imageUploadState.value = ImageUploadState.Uploading
+                val imageUrl = mediaRepository.uploadImage(imageUri)
+                _imageUploadState.value = ImageUploadState.Success(imageUrl)
+            } catch (e: Exception) {
+                val errorMessage = when (e) {
+                    is com.wapps1.redcarga.features.requests.domain.RequestsDomainError.NetworkError ->
+                        "No se pudo subir la imagen. Verifica tu conexión a internet."
+                    else ->
+                        "Error al subir la imagen: ${e.message ?: "Intenta nuevamente"}"
+                }
+                _imageUploadState.value = ImageUploadState.Error(errorMessage)
+            }
+        }
+    }
+
+    /**
+     * Resetea el estado de subida de imágenes
+     */
+    fun resetImageUploadState() {
+        _imageUploadState.value = ImageUploadState.Idle
     }
 }
 

@@ -3,6 +3,7 @@ package com.wapps1.redcarga.features.requests.presentation.views
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -12,14 +13,17 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.AsyncImage
 import com.wapps1.redcarga.core.ui.theme.RcColor3
 import com.wapps1.redcarga.core.ui.theme.RcColor5
 import com.wapps1.redcarga.features.requests.presentation.viewmodels.CreateRequestViewModel
@@ -429,14 +433,85 @@ private fun SummaryItemCard(item: CreateRequestViewModel.ItemFormData) {
                 fontWeight = FontWeight.Medium
             )
 
-            // Mostrar número de imágenes si hay
+            // Mostrar todas las imágenes si hay
             if (item.imageUris.isNotEmpty()) {
-                Spacer(Modifier.height(4.dp))
+                Spacer(Modifier.height(12.dp))
+
+                // Título de la sección de imágenes
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Text(
+                        text = "📷",
+                        fontSize = 16.sp
+                    )
+                    Text(
+                        text = "Imágenes (${item.imageUris.size})",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = RcColor5,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                Spacer(Modifier.height(8.dp))
+
+                // Galería de imágenes horizontal
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    items(item.imageUris.size) { index ->
+                        ItemImageThumbnail(
+                            imageUrl = item.imageUris[index],
+                            index = index + 1,
+                            totalImages = item.imageUris.size
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ItemImageThumbnail(
+    imageUrl: String,
+    index: Int,
+    totalImages: Int
+) {
+    Surface(
+        modifier = Modifier
+            .size(100.dp),
+        shape = RoundedCornerShape(12.dp),
+        shadowElevation = 2.dp,
+        tonalElevation = 0.dp,
+        color = Color(0xFFF5F5F5)
+    ) {
+        Box {
+            AsyncImage(
+                model = imageUrl,
+                contentDescription = "Imagen $index de $totalImages del artículo",
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(12.dp)),
+                contentScale = ContentScale.Crop
+            )
+
+            // Badge con número de imagen en la esquina superior derecha
+            Surface(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(4.dp),
+                shape = RoundedCornerShape(8.dp),
+                color = Color.Black.copy(alpha = 0.6f)
+            ) {
                 Text(
-                    text = "📷 ${item.imageUris.size} imagen${if (item.imageUris.size > 1) "es" else ""}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = RcColor5,
-                    fontWeight = FontWeight.Medium
+                    text = "$index",
+                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                    color = Color.White,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold
                 )
             }
         }

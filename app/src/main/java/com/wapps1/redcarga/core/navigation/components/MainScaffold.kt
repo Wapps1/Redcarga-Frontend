@@ -21,6 +21,8 @@ import com.wapps1.redcarga.features.requests.presentation.views.CreateRequestScr
 import com.wapps1.redcarga.features.deals.presentation.views.ClientDealsScreen
 import com.wapps1.redcarga.features.auth.presentation.views.UserProfileScreen
 import com.wapps1.redcarga.features.requests.presentation.views.ProviderIncomingRequestsScreen
+import com.wapps1.redcarga.features.chat.presentation.views.ChatListScreen
+import com.wapps1.redcarga.features.chat.presentation.views.ChatScreen
 
 @SuppressLint("UnrememberedGetBackStackEntry")
 @Composable
@@ -75,14 +77,16 @@ fun MainScaffold(
                 composable(BottomNavItem.ClientQuotes.route) {
                     ClientDealsScreen(
                         onBack = { navController.popBackStack() },
-                        onOpenChat = { 
+                        onOpenChat = {
                             // Navegar a Chat normalmente, sin modificar el back stack
                             // El bottom bar manejará correctamente el retorno
                             navController.navigate(BottomNavItem.ClientChat.route) {
                                 launchSingleTop = true
                             }
                         },
-                        onOpenQuoteDetails = { /* Navegar a detalles cuando exista */ }
+                        onOpenQuoteDetails = { quoteId, _requestId ->
+                            navController.navigate("client_view_quote/$quoteId")
+                        }
                     )
                 }
                 composable(BottomNavItem.ClientRequest.route) {
@@ -96,7 +100,30 @@ fun MainScaffold(
                     )
                 }
                 composable(BottomNavItem.ClientChat.route) {
-                    PlaceholderScreen(title = "Chat")
+                    ChatListScreen(
+                        onNavigateBack = {
+                            // No hacer nada, el bottom bar maneja la navegación
+                        },
+                        onNavigateToChat = { quoteId ->
+                            navController.navigate("client_chat/$quoteId")
+                        }
+                    )
+                }
+
+                composable("client_chat/{quoteId}") { backStackEntry ->
+                    val quoteId = backStackEntry.arguments?.getString("quoteId")?.toLongOrNull()
+                    if (quoteId != null) {
+                        ChatScreen(
+                            quoteId = quoteId,
+                            onNavigateBack = {
+                                navController.popBackStack()
+                            }
+                        )
+                    } else {
+                        LaunchedEffect(Unit) {
+                            navController.popBackStack()
+                        }
+                    }
                 }
                 composable(BottomNavItem.ClientProfile.route) {
                     UserProfileScreen(
@@ -141,6 +168,28 @@ fun MainScaffold(
                         }
                     )
                 }
+
+                // ⭐ Pantalla de detalle de cotización para CLIENTE
+                composable("client_view_quote/{quoteId}") { backStackEntry ->
+                    val quoteId = backStackEntry.arguments?.getString("quoteId")?.toLongOrNull()
+                    if (quoteId != null) {
+                        com.wapps1.redcarga.features.deals.presentation.views.ClientViewQuoteScreen(
+                            quoteId = quoteId,
+                            onNavigateBack = {
+                                navController.popBackStack()
+                            },
+                            onOpenChat = {
+                                navController.navigate(BottomNavItem.ClientChat.route) {
+                                    launchSingleTop = true
+                                }
+                            }
+                        )
+                    } else {
+                        LaunchedEffect(Unit) {
+                            navController.popBackStack()
+                        }
+                    }
+                }
             } else {
                 composable(BottomNavItem.ProviderHome.route) {
                     ProviderHomeScreen(
@@ -162,9 +211,13 @@ fun MainScaffold(
                         },
                         onViewQuote = { quoteId -> // ⭐ Nueva navegación para ver cotización
                             navController.navigate("provider_view_quote/$quoteId")
+                        },
+                        onChat = { quoteId -> // ⭐ Navegación al chat
+                            navController.navigate("provider_chat/$quoteId")
                         }
                     )
                 }
+
                 composable("provider_create_quote/{requestId}") { backStackEntry ->
                     val requestId = backStackEntry.arguments?.getString("requestId")?.toLongOrNull()
                     if (requestId != null) {
@@ -203,7 +256,30 @@ fun MainScaffold(
                     PlaceholderScreen(title = "Rutas")
                 }
                 composable(BottomNavItem.ProviderChat.route) {
-                    PlaceholderScreen(title = "Chat")
+                    ChatListScreen(
+                        onNavigateBack = {
+                            // No hacer nada, el bottom bar maneja la navegación
+                        },
+                        onNavigateToChat = { quoteId ->
+                            navController.navigate("provider_chat/$quoteId")
+                        }
+                    )
+                }
+
+                composable("provider_chat/{quoteId}") { backStackEntry ->
+                    val quoteId = backStackEntry.arguments?.getString("quoteId")?.toLongOrNull()
+                    if (quoteId != null) {
+                        ChatScreen(
+                            quoteId = quoteId,
+                            onNavigateBack = {
+                                navController.popBackStack()
+                            }
+                        )
+                    } else {
+                        LaunchedEffect(Unit) {
+                            navController.popBackStack()
+                        }
+                    }
                 }
                 composable(BottomNavItem.ProviderProfile.route) {
                     UserProfileScreen(

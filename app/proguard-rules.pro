@@ -50,3 +50,46 @@
 -dontwarn okhttp3.**
 -dontwarn okio.**
 -dontwarn javax.annotation.**
+
+# Hilt
+-keep class dagger.hilt.** { *; }
+-keep class javax.inject.** { *; }
+-keep class * extends dagger.hilt.android.internal.managers.ViewComponentManager$FragmentContextWrapper { *; }
+-keepclassmembers class * {
+    @dagger.hilt.android.internal.managers.ViewComponentManager$FragmentContextWrapper <init>(...);
+}
+-keepclassmembers class * {
+    @javax.inject.Inject <init>(...);
+}
+
+# Keep Application classes
+-keep class * extends android.app.Application
+-keep @dagger.hilt.android.HiltAndroidApp class * { *; }
+
+# Keep Entry Points
+-keep @dagger.hilt.android.AndroidEntryPoint class * { *; }
+-keepclassmembers class * {
+    @dagger.hilt.android.AndroidEntryPoint <methods>;
+}
+
+# Keep ViewModels
+-keep class * extends androidx.lifecycle.ViewModel { *; }
+
+# Keep Room
+-keep class * extends androidx.room.RoomDatabase
+-dontwarn androidx.room.paging.**
+
+# Keep Kotlin Coroutines
+-keepnames class kotlinx.coroutines.internal.MainDispatcherFactory {}
+-keepnames class kotlinx.coroutines.CoroutineExceptionHandler {}
+-keepclassmembers class kotlinx.** {
+    volatile <fields>;
+}
+
+# Keep Compose
+-keep class androidx.compose.** { *; }
+-dontwarn androidx.compose.**
+
+# Keep Navigation
+-keep class androidx.navigation.** { *; }
+-dontwarn androidx.navigation.**

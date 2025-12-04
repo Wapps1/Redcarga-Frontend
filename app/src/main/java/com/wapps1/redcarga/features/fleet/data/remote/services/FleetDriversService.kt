@@ -1,5 +1,6 @@
 package com.wapps1.redcarga.features.fleet.data.remote.services
 
+import com.wapps1.redcarga.features.fleet.data.remote.models.CreateDriverFromAccountDto
 import com.wapps1.redcarga.features.fleet.data.remote.models.CreateDriverResponseDto
 import com.wapps1.redcarga.features.fleet.data.remote.models.DriverDto
 import com.wapps1.redcarga.features.fleet.data.remote.models.DriverUpsertDto
@@ -26,6 +27,14 @@ interface FleetDriversService {
     suspend fun createDriver(
         @Path("companyId") companyId: Long,
         @Body body: DriverUpsertDto
+    ): CreateDriverResponseDto
+    
+  
+    @Headers("X-App-Auth: true")
+    @POST("fleet/companies/{companyId}/drivers")
+    suspend fun createDriverFromAccount(
+        @Path("companyId") companyId: Long,
+        @Body body: CreateDriverFromAccountDto
     ): CreateDriverResponseDto
 
     @Headers("X-App-Auth: true")

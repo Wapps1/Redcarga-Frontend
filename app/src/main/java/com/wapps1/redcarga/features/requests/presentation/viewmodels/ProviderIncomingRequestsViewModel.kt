@@ -18,9 +18,12 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
+import org.json.JSONObject
 import javax.inject.Inject
 
 private const val TAG = "ProviderInboxVM"
@@ -64,6 +67,13 @@ class ProviderIncomingRequestsViewModel @Inject constructor(
     // ID de la última solicitud nueva para destacarla
     private val _lastNewRequestId = MutableStateFlow<Long?>(null)
     val lastNewRequestId: StateFlow<Long?> = _lastNewRequestId.asStateFlow()
+    
+    // ⭐ MEJORADO: Set de timestamps de mensajes procesados para evitar duplicados
+    private val processedMessageTimestamps = mutableSetOf<Long>()
+    
+    // ⭐ MEJORADO: Estado para errores de refresh después de notificación WebSocket
+    private val _refreshErrorAfterNotification = MutableStateFlow<String?>(null)
+    val refreshErrorAfterNotification: StateFlow<String?> = _refreshErrorAfterNotification.asStateFlow()
 
     // Observar solicitudes entrantes desde el repositorio
     val incomingRequests: StateFlow<List<IncomingRequestSummary>> =
@@ -92,6 +102,13 @@ class ProviderIncomingRequestsViewModel @Inject constructor(
     // ⭐ Set de IDs de solicitudes YA cotizadas
     private val _quotedRequestIds = MutableStateFlow<Set<Long>>(emptySet())
     val quotedRequestIds: StateFlow<Set<Long>> = _quotedRequestIds.asStateFlow()
+    
+    // ⭐ Mapa de requestId -> stateCode para quotes aceptadas (TRATO, ACEPTADA, CERRADA)
+    private val _acceptedQuotesState = MutableStateFlow<Map<Long, String>>(emptyMap())
+    val acceptedQuotesState: StateFlow<Map<Long, String>> = _acceptedQuotesState.asStateFlow()
+    
+    // ⭐ Bandera para indicar si la carga inicial está en progreso
+    private var isInitialLoadInProgress = false
 
     init {
         Log.d(TAG, "🎬 ViewModel inicializado")
@@ -115,49 +132,76 @@ class ProviderIncomingRequestsViewModel @Inject constructor(
                 
                 val currentCompanyId = _companyId.value
                 if (currentCompanyId != null) {
-                    _uiState.value = UiState.Success(requests)
-                    Log.d(TAG, "✅ UI actualizado a Success con ${requests.size} items (companyId=$currentCompanyId)")
+                    // ⭐ NO actualizar el estado a Success durante la carga inicial
+                    // Solo loadAllData() debe actualizar el estado cuando termine
+                    if (!isInitialLoadInProgress) {
+                        _uiState.value = UiState.Success(requests)
+                        Log.d(TAG, "✅ UI actualizado a Success con ${requests.size} items (companyId=$currentCompanyId)")
+                    } else {
+                        Log.d(TAG, "⏳ Carga inicial en progreso - No actualizar UI todavía")
+                    }
                 } else {
                     Log.w(TAG, "⚠️ No se actualiza UI porque companyId sigue siendo null")
                 }
             }
         }
 
-        // Observar mensajes WebSocket para auto-refresh
+        // ⭐ MEJORADO: Observar mensajes WebSocket para auto-refresh (evita duplicados)
         viewModelScope.launch {
             Log.d(TAG, "🔌 Iniciando observación de WebSocket messages...")
             webSocketManager.receivedMessages.collect { messages ->
-                val lastMessage = messages.lastOrNull()
-                if (lastMessage?.type == WebSocketMessageType.NEW_REQUEST) {
-                    Log.d(TAG, "🔔 Nueva solicitud detectada via WebSocket!")
-                    Log.d(TAG, "📨 Contenido: ${lastMessage.content}")
+                // ⭐ MEJORADO: Procesar solo mensajes nuevos (no procesados antes)
+                messages.forEach { message ->
+                    // Verificar si ya procesamos este mensaje (por timestamp)
+                    if (message.timestamp in processedMessageTimestamps) {
+                        Log.d(TAG, "⏭️ Mensaje ya procesado (timestamp: ${message.timestamp}), saltando...")
+                        return@forEach
+                    }
                     
-                    // Parsear el requestId del mensaje si está disponible
-                    val requestId = parseRequestIdFromWebSocketMessage(lastMessage.content)
-                    if (requestId != null) {
-                        _lastNewRequestId.value = requestId
-                        Log.d(TAG, "🆕 Marcando request $requestId como nueva")
-                        
-                        // Auto-limpiar después de 15 segundos
-                        launch {
-                            kotlinx.coroutines.delay(15000)
-                            if (_lastNewRequestId.value == requestId) {
-                                _lastNewRequestId.value = null
-                                Log.d(TAG, "⏰ Limpiando marca de nueva solicitud")
-                            }
+                    // Marcar como procesado
+                    processedMessageTimestamps.add(message.timestamp)
+                    
+                    // Limpiar timestamps antiguos (mantener solo los últimos 100)
+                    if (processedMessageTimestamps.size > 100) {
+                        val oldest = processedMessageTimestamps.minOrNull()
+                        if (oldest != null) {
+                            processedMessageTimestamps.remove(oldest)
                         }
                     }
                     
-                    // Mostrar notificación
-                    _newRequestNotification.value = "¡Nueva solicitud recibida! 🎉"
-                    
-                    // Refrescar la lista
-                    refreshRequests()
-                    
-                    // Auto-ocultar notificación después de 5 segundos
-                    launch {
-                        kotlinx.coroutines.delay(5000)
-                        _newRequestNotification.value = null
+                    // Procesar solo mensajes NEW_REQUEST
+                    if (message.type == WebSocketMessageType.NEW_REQUEST) {
+                        Log.d(TAG, "🔔 Nueva solicitud detectada via WebSocket!")
+                        Log.d(TAG, "📨 Contenido: ${message.content}")
+                        Log.d(TAG, "⏰ Timestamp: ${message.timestamp}")
+                        
+                        // ⭐ MEJORADO: Parsear el requestId usando JSONObject
+                        val requestId = parseRequestIdFromWebSocketMessage(message.content)
+                        if (requestId != null) {
+                            _lastNewRequestId.value = requestId
+                            Log.d(TAG, "🆕 Marcando request $requestId como nueva")
+                            
+                            // Auto-limpiar después de 15 segundos
+                            launch {
+                                delay(15000)
+                                if (_lastNewRequestId.value == requestId) {
+                                    _lastNewRequestId.value = null
+                                    Log.d(TAG, "⏰ Limpiando marca de nueva solicitud")
+                                }
+                            }
+                        }
+                        
+                        // Mostrar notificación
+                        _newRequestNotification.value = "¡Nueva solicitud recibida! 🎉"
+                        
+                        // ⭐ MEJORADO: Refrescar con delay y retry para evitar race conditions
+                        refreshRequestsWithRetry(isFromWebSocket = true)
+                        
+                        // Auto-ocultar notificación después de 5 segundos
+                        launch {
+                            delay(5000)
+                            _newRequestNotification.value = null
+                        }
                     }
                 }
             }
@@ -173,8 +217,7 @@ class ProviderIncomingRequestsViewModel @Inject constructor(
                 if (companyId != null && lastCompanyId == null) {
                     Log.d(TAG, "✅ CompanyId disponible por primera vez: $companyId - Iniciando refresh...")
                     _uiState.value = UiState.Loading
-                    refreshRequests()
-                    refreshQuotes() // ⭐ También refrescar cotizaciones
+                    loadAllData() // ⭐ Cargar TODOS los endpoints antes de mostrar la UI
                 } else if (companyId == null) {
                     Log.w(TAG, "⚠️ currentCompanyId es null")
                 }
@@ -206,14 +249,110 @@ class ProviderIncomingRequestsViewModel @Inject constructor(
     }
 
     /**
+     * Carga todos los datos necesarios (requests, quotes, accepted quotes) antes de mostrar la UI
+     * ⭐ Este método espera a que TODOS los endpoints terminen antes de mostrar la data
+     */
+    private fun loadAllData() {
+        viewModelScope.launch {
+            try {
+                // ⭐ Marcar que la carga inicial está en progreso
+                isInitialLoadInProgress = true
+                _uiState.value = UiState.Loading
+                
+                val companyId = _companyId.value
+                if (companyId == null) {
+                    Log.e(TAG, "❌❌ No se pudo obtener el companyId - ES NULL")
+                    _uiState.value = UiState.Error("No se pudo obtener el ID de la compañía")
+                    isInitialLoadInProgress = false
+                    return@launch
+                }
+                
+                Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+                Log.d(TAG, "🔄 CARGANDO TODOS LOS DATOS...")
+                Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+                
+                // 1. Cargar solicitudes
+                Log.d(TAG, "📋 Paso 1: Cargando solicitudes...")
+                inboxRepository.refreshIncomingRequests(companyId)
+                Log.d(TAG, "✅ ✅ Solicitudes cargadas: ${incomingRequests.value.size} items")
+                
+                // 2. Cargar cotizaciones
+                Log.d(TAG, "💰 Paso 2: Cargando cotizaciones...")
+                quotesRepository.refreshQuotesByCompany(companyId)
+                Log.d(TAG, "✅ ✅ Cotizaciones cargadas")
+                
+                // 3. Obtener quotes desde el repositorio para actualizar quotedRequestIds
+                Log.d(TAG, "💰 Paso 2.1: Obteniendo quotes para actualizar quotedRequestIds...")
+                val quotes = quotesRepository.observeQuotesByCompany(companyId).first()
+                _myQuotes.value = quotes
+                val quotedIds = quotes.map { it.requestId }.toSet()
+                _quotedRequestIds.value = quotedIds
+                Log.d(TAG, "✅ ✅ RequestIDs cotizados actualizados: $quotedIds")
+                
+                // 4. Cargar quotes aceptadas
+                Log.d(TAG, "✅ Paso 3: Cargando quotes aceptadas...")
+                val acceptedQuotes = quotesRepository.getAcceptedQuotesByCompany(companyId)
+                _acceptedQuotesState.value = acceptedQuotes
+                Log.d(TAG, "✅ ✅ Quotes aceptadas cargadas: ${acceptedQuotes.size} requests")
+                Log.d(TAG, "   RequestIds con quotes aceptadas: ${acceptedQuotes.keys}")
+                
+                // 5. Finalmente, mostrar la UI
+                Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+                Log.d(TAG, "✅✅✅ TODOS LOS DATOS CARGADOS - MOSTRANDO UI")
+                Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+                
+                // ⭐ Marcar que la carga inicial terminó ANTES de actualizar el estado
+                isInitialLoadInProgress = false
+                _uiState.value = UiState.Success(incomingRequests.value)
+                
+            } catch (e: Exception) {
+                Log.e(TAG, "❌❌❌ ERROR al cargar todos los datos", e)
+                Log.e(TAG, "   Tipo: ${e::class.simpleName}")
+                Log.e(TAG, "   Mensaje: ${e.message}")
+                isInitialLoadInProgress = false
+                _uiState.value = UiState.Error(e.message ?: "Error al cargar datos")
+            }
+        }
+    }
+    
+    /**
+     * Refresca TODOS los datos (requests, quotes, accepted quotes)
+     * ⭐ Método público para refrescar completamente toda la información
+     */
+    fun refreshAllData() {
+        Log.d(TAG, "🔄 refreshAllData() llamado - Refrescando TODA la información")
+        loadAllData()
+    }
+    
+    /**
      * Refresca las solicitudes desde el backend
      */
     fun refreshRequests() {
-        Log.d(TAG, "🔄 refreshRequests() llamado")
+        refreshRequestsWithRetry(isFromWebSocket = false)
+    }
+    
+    /**
+     * ⭐ MEJORADO: Refresca las solicitudes con retry y delay opcional
+     * @param isFromWebSocket Si es true, agrega delay y retry para evitar race conditions
+     */
+    private fun refreshRequestsWithRetry(isFromWebSocket: Boolean = false) {
+        Log.d(TAG, "🔄 refreshRequestsWithRetry() llamado (isFromWebSocket=$isFromWebSocket)")
         viewModelScope.launch {
             try {
-                Log.d(TAG, "🔄 Seteando UI a Loading...")
-                _uiState.value = UiState.Loading
+                // ⭐ MEJORADO: Delay si viene de WebSocket para dar tiempo al backend
+                if (isFromWebSocket) {
+                    Log.d(TAG, "⏳ Esperando 1 segundo antes de refrescar (evitar race condition)...")
+                    delay(1000) // 1 segundo de delay
+                }
+                
+                // ⭐ NO cambiar el estado si la carga inicial está en progreso
+                if (!isInitialLoadInProgress) {
+                    Log.d(TAG, "🔄 Seteando UI a Loading...")
+                    _uiState.value = UiState.Loading
+                } else {
+                    Log.d(TAG, "⏳ Carga inicial en progreso - No cambiar estado a Loading")
+                }
+                _refreshErrorAfterNotification.value = null // Limpiar error anterior
 
                 val companyId = _companyId.value
                 Log.d(TAG, "🔑 CompanyId actual: $companyId")
@@ -226,20 +365,58 @@ class ProviderIncomingRequestsViewModel @Inject constructor(
                     Log.d(TAG, "✅ Repository refresh completado")
                     Log.d(TAG, "📊 incomingRequests.value tiene: ${incomingRequests.value.size} items")
 
-                    _uiState.value = UiState.Success(incomingRequests.value)
-                    Log.d(TAG, "✅✅ Solicitudes refrescadas correctamente: ${incomingRequests.value.size} items")
+                    // ⭐ Solo actualizar el estado si la carga inicial NO está en progreso
+                    if (!isInitialLoadInProgress) {
+                        _uiState.value = UiState.Success(incomingRequests.value)
+                        Log.d(TAG, "✅✅ Solicitudes refrescadas correctamente: ${incomingRequests.value.size} items")
+                    } else {
+                        Log.d(TAG, "⏳ Carga inicial en progreso - No actualizar estado todavía")
+                    }
                 } else {
                     Log.e(TAG, "❌❌ No se pudo obtener el companyId - ES NULL")
-                    _uiState.value = UiState.Error("No se pudo obtener el ID de la compañía")
+                    val errorMsg = "No se pudo obtener el ID de la compañía"
+                    if (!isInitialLoadInProgress) {
+                        _uiState.value = UiState.Error(errorMsg)
+                    }
+                    if (isFromWebSocket) {
+                        _refreshErrorAfterNotification.value = errorMsg
+                    }
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "❌❌ ERROR al refrescar solicitudes", e)
                 Log.e(TAG, "   Tipo: ${e::class.simpleName}")
                 Log.e(TAG, "   Mensaje: ${e.message}")
                 Log.e(TAG, "   Stack:", e)
-                _uiState.value = UiState.Error(
-                    e.message ?: "Error al cargar solicitudes"
-                )
+                
+                val errorMsg = e.message ?: "Error al cargar solicitudes"
+                if (!isInitialLoadInProgress) {
+                    _uiState.value = UiState.Error(errorMsg)
+                }
+                
+                // ⭐ MEJORADO: Si viene de WebSocket y falla, intentar retry
+                if (isFromWebSocket) {
+                    _refreshErrorAfterNotification.value = errorMsg
+                    
+                    // ⭐ MEJORADO: Retry después de 2 segundos (solo una vez)
+                    Log.d(TAG, "🔄 Intentando retry en 2 segundos...")
+                    delay(2000)
+                    
+                    try {
+                        val companyId = _companyId.value
+                        if (companyId != null) {
+                            Log.d(TAG, "🔄 Retry: Refrescando solicitudes...")
+                            inboxRepository.refreshIncomingRequests(companyId)
+                            if (!isInitialLoadInProgress) {
+                                _uiState.value = UiState.Success(incomingRequests.value)
+                            }
+                            _refreshErrorAfterNotification.value = null // Limpiar error si el retry funciona
+                            Log.d(TAG, "✅✅ Retry exitoso - Solicitudes refrescadas")
+                        }
+                    } catch (retryException: Exception) {
+                        Log.e(TAG, "❌❌ Retry también falló", retryException)
+                        _refreshErrorAfterNotification.value = "Error al actualizar después de nueva solicitud. Por favor, recarga manualmente."
+                    }
+                }
             }
         }
     }
@@ -283,12 +460,38 @@ class ProviderIncomingRequestsViewModel @Inject constructor(
                     Log.d(TAG, "💰 Refrescando cotizaciones para companyId=$companyId...")
                     quotesRepository.refreshQuotesByCompany(companyId)
                     Log.d(TAG, "💰 ✅ Cotizaciones refrescadas")
+                    // También refrescar quotes aceptadas
+                    loadAcceptedQuotes()
                 } else {
                     Log.w(TAG, "💰 ⚠️ No se puede refrescar - companyId es null")
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "💰 ❌ Error al refrescar cotizaciones", e)
                 // No bloqueamos la UI por error en cotizaciones
+            }
+        }
+    }
+    
+    /**
+     * Carga las quotes aceptadas (TRATO, ACEPTADA, CERRADA) con sus estados
+     */
+    fun loadAcceptedQuotes() {
+        Log.d(TAG, "✅ loadAcceptedQuotes() llamado")
+        viewModelScope.launch {
+            try {
+                val companyId = _companyId.value
+                if (companyId != null) {
+                    Log.d(TAG, "✅ Cargando quotes aceptadas para companyId=$companyId...")
+                    val acceptedQuotes = quotesRepository.getAcceptedQuotesByCompany(companyId)
+                    _acceptedQuotesState.value = acceptedQuotes
+                    Log.d(TAG, "✅ ✅ Quotes aceptadas cargadas: ${acceptedQuotes.size} requests")
+                    Log.d(TAG, "   RequestIds: ${acceptedQuotes.keys}")
+                } else {
+                    Log.w(TAG, "✅ ⚠️ No se puede cargar - companyId es null")
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "✅ ❌ Error al cargar quotes aceptadas", e)
+                // No bloqueamos la UI por error
             }
         }
     }
@@ -312,19 +515,41 @@ class ProviderIncomingRequestsViewModel @Inject constructor(
     }
 
     /**
-     * Parsea el requestId del mensaje WebSocket
-     * El mensaje viene en formato JSON: {"requestId": 123, "companyId": 52, ...}
+     * ⭐ MEJORADO: Parsea el requestId del mensaje WebSocket usando JSONObject
+     * El mensaje viene en formato JSON: {"type":"NEW_REQUEST","requestId": 123, "companyId": 52, ...}
      */
     private fun parseRequestIdFromWebSocketMessage(content: String?): Long? {
         if (content.isNullOrBlank()) return null
         
         return try {
-            // Buscar "requestId": seguido de un número
+            // ⭐ MEJORADO: Intentar parsear como JSON primero
+            if (content.trim().startsWith("{") && content.trim().endsWith("}")) {
+                val json = JSONObject(content)
+                val requestId = json.optLong("requestId", -1L)
+                
+                if (requestId > 0) {
+                    Log.d(TAG, "✅ requestId parseado correctamente: $requestId")
+                    return requestId
+                } else {
+                    Log.w(TAG, "⚠️ requestId no encontrado o inválido en JSON")
+                }
+            }
+            
+            // ⭐ Fallback: usar regex si el JSON no funciona
             val regex = """"requestId"\s*:\s*(\d+)""".toRegex()
             val matchResult = regex.find(content)
-            matchResult?.groupValues?.get(1)?.toLongOrNull()
+            val parsedId = matchResult?.groupValues?.get(1)?.toLongOrNull()
+            
+            if (parsedId != null) {
+                Log.d(TAG, "✅ requestId parseado con regex: $parsedId")
+            } else {
+                Log.w(TAG, "⚠️ No se pudo parsear requestId ni con JSON ni con regex")
+            }
+            
+            parsedId
         } catch (e: Exception) {
-            Log.w(TAG, "⚠️ No se pudo parsear requestId del mensaje WebSocket: ${e.message}")
+            Log.w(TAG, "⚠️ Error al parsear requestId del mensaje WebSocket: ${e.message}")
+            Log.w(TAG, "   Contenido: ${content.take(200)}")
             null
         }
     }
@@ -360,17 +585,37 @@ class ProviderIncomingRequestsViewModel @Inject constructor(
     }
     
     /**
-     * Obtiene solo las solicitudes EN PROCESO (ya cotizadas)
+     * Obtiene solo las solicitudes EN PROCESO (ya cotizadas pero NO aceptadas)
      */
     fun getInProgressRequests(): List<IncomingRequestSummary> {
-        return incomingRequests.value.filter { isRequestQuoted(it.requestId) }
+        val acceptedRequestIds = _acceptedQuotesState.value.keys
+        return incomingRequests.value.filter { 
+            isRequestQuoted(it.requestId) && it.requestId !in acceptedRequestIds
+        }
     }
     
+    /**
+     * Obtiene las solicitudes con cotizaciones aceptadas (TRATO, ACEPTADA, CERRADA)
+     */
+    fun getAcceptedRequests(): List<IncomingRequestSummary> {
+        val acceptedRequestIds = _acceptedQuotesState.value.keys
+        return incomingRequests.value.filter { it.requestId in acceptedRequestIds }
+    }
+    
+    /**
+     * Obtiene el estado de una cotización aceptada para un requestId
+     */
+    fun getAcceptedQuoteState(requestId: Long): String? {
+        return _acceptedQuotesState.value[requestId]
+    }
+
     // Estadísticas
     fun getTotalRequests(): Int = incomingRequests.value.size
 
     fun getOpenRequestsCount(): Int = getOpenRequests().size
     
     fun getInProgressCount(): Int = getInProgressRequests().size
+    
+    fun getAcceptedCount(): Int = getAcceptedRequests().size
 }
 

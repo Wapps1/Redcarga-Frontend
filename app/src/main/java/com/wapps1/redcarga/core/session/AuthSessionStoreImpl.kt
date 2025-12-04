@@ -125,11 +125,10 @@ class AuthSessionStoreImpl @Inject constructor(
 
     override suspend fun signInManually(
         email: Email,
-        password: String,  // ✅ String sin validación para login
+        password: String,
         platform: Platform,
         ip: String
     ) {
-        // En login NO validamos la contraseña (ya existe en el backend)
         val fb = firebase.signInWithPassword(email, password)
         secure.saveFirebaseSession(fb)
         _sessionState.value = SessionState.FirebaseOnly(fb)
@@ -154,7 +153,6 @@ class AuthSessionStoreImpl @Inject constructor(
 
         val app = auth.login(AppLoginRequest(platform, ip))
 
-        // ✅ GUARDAR el AppSession en secure storage
         secure.saveAppSession(app)
 
         _sessionState.value = SessionState.AppSignedIn(app)
@@ -166,11 +164,12 @@ class AuthSessionStoreImpl @Inject constructor(
 
         val webSocketUserType = app.roles.toWebSocketUserType()
         if (webSocketUserType != null) {
-            Log.d("AuthSessionStore", "🔌 Conectando WebSocket para $webSocketUserType con companyId=${app.companyId}")
+            Log.d("AuthSessionStore", "🔌 Conectando WebSocket para $webSocketUserType con companyId=${app.companyId}, accountId=${app.accountId}")
             webSocketManager.connect(
                 iamToken = app.accessToken,
                 userType = webSocketUserType,
-                companyId = app.companyId
+                companyId = app.companyId,
+                accountId = app.accountId
             )
 
         } else {

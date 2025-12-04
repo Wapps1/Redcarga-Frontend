@@ -60,10 +60,8 @@ class RequestsRepositoryImpl @Inject constructor(
 
     override suspend fun getRequestById(requestId: Long): Request {
         return try {
-            local.getRequestById(requestId)
-                ?: throw RequestsDomainError.RequestNotFound
-        } catch (e: RequestsDomainError) {
-            throw e
+            val requestDto = remote.getRequestById(requestId)
+            requestDto.toDomain()
         } catch (e: Exception) {
             throw RequestsDomainError.NetworkError
         }

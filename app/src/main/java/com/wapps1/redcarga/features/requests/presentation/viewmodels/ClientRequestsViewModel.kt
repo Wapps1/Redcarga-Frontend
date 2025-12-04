@@ -74,6 +74,7 @@ class ClientRequestsViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 _detailState.value = DetailState.Loading
+                // ⭐ Obtener directamente desde el servidor (endpoint)
                 val request = requestsRepository.getRequestById(requestId)
                 _detailState.value = DetailState.Success(request)
             } catch (e: Exception) {

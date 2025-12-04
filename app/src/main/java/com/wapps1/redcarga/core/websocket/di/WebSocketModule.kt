@@ -7,9 +7,6 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
-/**
- * Módulo de Dagger Hilt para WebSocket
- */
 @Module
 @InstallIn(SingletonComponent::class)
 object WebSocketModule {

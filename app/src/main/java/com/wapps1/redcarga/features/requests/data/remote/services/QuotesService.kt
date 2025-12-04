@@ -30,12 +30,15 @@ interface QuotesService {
 
     /**
      * Obtiene la lista de cotizaciones de una compañía
-     * GET /api/deals/quotes/general?company_id={companyId}
+     * GET /api/deals/quotes/general?company_id={companyId}&state={state}
+     * @param state Opcional: PENDING, TRATO, RECHAZADA, ACEPTADA. Si es null, retorna todas.
+     * Nota: Si state=TRATO, incluye también EN_ESPERA automáticamente.
      */
     @Headers("X-App-Auth: true")
     @GET("/api/deals/quotes/general")
     suspend fun getQuotesByCompany(
-        @Query("company_id") companyId: Long
+        @Query("company_id") companyId: Long,
+        @Query("state") state: String? = null
     ): List<QuoteSummaryDto>
 
     /**

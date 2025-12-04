@@ -25,11 +25,17 @@ class MainActivity : ComponentActivity() {
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-            RedcargaTheme {
-                Navigation(store = authSessionStore)
+        try {
+            enableEdgeToEdge()
+            setContent {
+                RedcargaTheme {
+                    Navigation(store = authSessionStore)
+                }
             }
+        } catch (e: Exception) {
+            android.util.Log.e("MainActivity", "Error en onCreate", e)
+            // Re-lanzar para que el sistema muestre el error real
+            throw e
         }
     }
 }

@@ -1,15 +1,22 @@
 package com.wapps1.redcarga.features.requests.presentation.views
 
+import android.Manifest
+import android.content.ContentValues
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
+import android.provider.MediaStore
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -31,8 +38,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -40,6 +47,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.wapps1.redcarga.R
@@ -49,6 +57,7 @@ import com.wapps1.redcarga.core.ui.theme.RcColor5
 import com.wapps1.redcarga.features.fleet.domain.models.geo.Department
 import com.wapps1.redcarga.features.fleet.domain.models.geo.Province
 import com.wapps1.redcarga.features.requests.presentation.viewmodels.CreateRequestViewModel
+import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -448,7 +457,8 @@ fun CreateRequestScreen(
                 }
                 showAddItemDialog = false
                 editingItem = null
-            }
+            },
+            viewModel = viewModel
         )
     }
 }
@@ -766,8 +776,11 @@ private fun <T> CompactSelector(
 private fun AddItemDialog(
     item: CreateRequestViewModel.ItemFormData?,
     onDismiss: () -> Unit,
-    onSave: (CreateRequestViewModel.ItemFormData) -> Unit
+    onSave: (CreateRequestViewModel.ItemFormData) -> Unit,
+    viewModel: CreateRequestViewModel = hiltViewModel()
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+
     var itemName by remember { mutableStateOf(item?.itemName ?: "") }
     var heightCm by remember { mutableStateOf(item?.heightCm ?: "") }
     var widthCm by remember { mutableStateOf(item?.widthCm ?: "") }
@@ -778,12 +791,117 @@ private fun AddItemDialog(
     var notes by remember { mutableStateOf(item?.notes ?: "") }
     var imageUris by remember { mutableStateOf(item?.imageUris ?: emptyList()) }
 
-    // Launcher para la cámara
+    // URI temporal para la foto de la cámara
+    var cameraImageUri by remember { mutableStateOf<Uri?>(null) }
+
+    // Estado de subida de imágenes
+    val imageUploadState by viewModel.imageUploadState.collectAsState()
+
+    // Verificar si tenemos permiso de cámara
+    val hasCameraPermission = remember {
+        ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.CAMERA
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    // Función para crear un URI temporal para la cámara
+    fun createCameraImageUri(): Uri? {
+        return try {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                // Android 10+ (API 29+): Usar MediaStore
+                val contentValues = android.content.ContentValues().apply {
+                    put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, "IMG_${System.currentTimeMillis()}.jpg")
+                    put(android.provider.MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
+                    put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, "Pictures/RedCarga")
+                }
+                context.contentResolver.insert(
+                    android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                    contentValues
+                )
+            } else {
+                // Android 9 y anteriores: Usar FileProvider
+                val imageFile = java.io.File(
+                    context.cacheDir,
+                    "camera_images"
+                ).apply {
+                    if (!exists()) mkdirs()
+                }
+                val photoFile = java.io.File(
+                    imageFile,
+                    "IMG_${System.currentTimeMillis()}.jpg"
+                )
+                androidx.core.content.FileProvider.getUriForFile(
+                    context,
+                    "${context.packageName}.fileprovider",
+                    photoFile
+                )
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("AddItemDialog", "Error creando URI para cámara: ${e.message}")
+            null
+        }
+    }
+
+    // Launcher para la cámara - SIEMPRE abre la cámara
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture()
     ) { success ->
-        if (success) {
-            // La imagen ya está guardada en el URI temporal
+        if (success && cameraImageUri != null) {
+            // Subir la imagen al servidor
+            viewModel.uploadImage(cameraImageUri!!)
+        } else {
+            cameraImageUri = null
+        }
+    }
+
+    // Launcher para solicitar permiso de cámara
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            // Si se concedió el permiso, abrir la cámara
+            val uri = createCameraImageUri()
+            if (uri != null) {
+                cameraImageUri = uri
+                cameraLauncher.launch(uri)
+            } else {
+                android.widget.Toast.makeText(
+                    context,
+                    "Error al preparar la cámara",
+                    android.widget.Toast.LENGTH_SHORT
+                ).show()
+            }
+        } else {
+            // Si se denegó el permiso, mostrar mensaje
+            android.widget.Toast.makeText(
+                context,
+                "Se necesita permiso de cámara para tomar fotos",
+                android.widget.Toast.LENGTH_LONG
+            ).show()
+        }
+    }
+
+    // Observar cuando se sube una imagen exitosamente
+    LaunchedEffect(imageUploadState) {
+        when (val state = imageUploadState) {
+            is CreateRequestViewModel.ImageUploadState.Success -> {
+                // Agregar la URL de la imagen subida a la lista
+                imageUris = imageUris + state.imageUrl
+                viewModel.resetImageUploadState()
+                cameraImageUri = null
+            }
+            is CreateRequestViewModel.ImageUploadState.Error -> {
+                // Mostrar error
+                android.widget.Toast.makeText(
+                    context,
+                    state.message,
+                    android.widget.Toast.LENGTH_SHORT
+                ).show()
+                viewModel.resetImageUploadState()
+                cameraImageUri = null
+            }
+            else -> {}
         }
     }
 
@@ -792,7 +910,8 @@ private fun AddItemDialog(
         contract = ActivityResultContracts.PickVisualMedia()
     ) { uri: Uri? ->
         uri?.let {
-            imageUris = imageUris + it.toString()
+            // Subir la imagen de la galería también
+            viewModel.uploadImage(it)
         }
     }
 
@@ -866,35 +985,68 @@ private fun AddItemDialog(
                             shape = RoundedCornerShape(10.dp),
                             colors = ButtonDefaults.outlinedButtonColors(
                                 contentColor = RcColor5
-                            )
+                            ),
+                            enabled = imageUploadState !is CreateRequestViewModel.ImageUploadState.Uploading
                         ) {
-                            Icon(
-                                Icons.Filled.Image,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp)
-                            )
+                            if (imageUploadState is CreateRequestViewModel.ImageUploadState.Uploading) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(18.dp),
+                                    strokeWidth = 2.dp,
+                                    color = RcColor5
+                                )
+                            } else {
+                                Icon(
+                                    Icons.Filled.Image,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
                             Spacer(Modifier.width(6.dp))
                             Text("Galería", fontSize = 13.sp)
                         }
 
                         OutlinedButton(
                             onClick = {
-                                // TODO: Implementar cámara con URI temporal
-                                galleryLauncher.launch(
-                                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                                )
+                                // ⭐ SIEMPRE abrir la cámara
+                                // Primero verificar si tenemos permiso
+                                if (hasCameraPermission) {
+                                    // Si ya tenemos permiso, abrir la cámara directamente
+                                    val uri = createCameraImageUri()
+                                    if (uri != null) {
+                                        cameraImageUri = uri
+                                        cameraLauncher.launch(uri)
+                                    } else {
+                                        android.widget.Toast.makeText(
+                                            context,
+                                            "Error al preparar la cámara",
+                                            android.widget.Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                } else {
+                                    // Si no tenemos permiso, solicitarlo
+                                    cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                                }
                             },
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(10.dp),
                             colors = ButtonDefaults.outlinedButtonColors(
                                 contentColor = RcColor5
-                            )
+                            ),
+                            enabled = imageUploadState !is CreateRequestViewModel.ImageUploadState.Uploading
                         ) {
-                            Icon(
-                                Icons.Filled.CameraAlt,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp)
-                            )
+                            if (imageUploadState is CreateRequestViewModel.ImageUploadState.Uploading) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(18.dp),
+                                    strokeWidth = 2.dp,
+                                    color = RcColor5
+                                )
+                            } else {
+                                Icon(
+                                    Icons.Filled.CameraAlt,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
                             Spacer(Modifier.width(6.dp))
                             Text("Cámara", fontSize = 13.sp)
                         }

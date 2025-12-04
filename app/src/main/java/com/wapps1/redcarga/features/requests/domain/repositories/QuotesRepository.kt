@@ -48,5 +48,11 @@ interface QuotesRepository {
      * Rechaza una cotización
      */
     suspend fun rejectQuote(quoteId: Long): Result<Unit>
+    
+    /**
+     * Obtiene las cotizaciones aceptadas de una compañía con sus estados
+     * Retorna un mapa de requestId -> stateCode para las quotes en estados TRATO, ACEPTADA, CERRADA
+     */
+    suspend fun getAcceptedQuotesByCompany(companyId: Long): Map<Long, String> // requestId -> stateCode
 }
 
