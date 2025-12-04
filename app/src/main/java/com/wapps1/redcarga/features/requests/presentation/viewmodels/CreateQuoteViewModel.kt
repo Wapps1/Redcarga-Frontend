@@ -122,9 +122,9 @@ class CreateQuoteViewModel @Inject constructor(
                     return@launch
                 }
 
-                // Validar precio total
-                if (_totalAmount.value <= BigDecimal.ZERO) {
-                    _submitState.value = SubmitState.Error("El precio total debe ser mayor a 0")
+                // ⭐ MEJORADO: Validar precio total >= 0.01 para coincidir con validación del backend (@DecimalMin(value = "0.01"))
+                if (_totalAmount.value < BigDecimal("0.01")) {
+                    _submitState.value = SubmitState.Error("El precio total debe ser mayor o igual a 0.01")
                     return@launch
                 }
 
@@ -143,11 +143,17 @@ class CreateQuoteViewModel @Inject constructor(
                     return@launch
                 }
 
-                Log.d(TAG, "📤 Enviando cotización:")
-                Log.d(TAG, "   requestId: ${request.requestId}")
-                Log.d(TAG, "   companyId: $companyId")
-                Log.d(TAG, "   totalAmount: ${_totalAmount.value}")
-                Log.d(TAG, "   items: ${quoteItems.size}")
+                Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+                Log.d(TAG, "📤 PREPARANDO COTIZACIÓN PARA ENVIAR (HTTP POST)")
+                Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+                Log.d(TAG, "   requestId: ${request.requestId} (Long)")
+                Log.d(TAG, "   companyId: $companyId (Long)")
+                Log.d(TAG, "   totalAmount: ${_totalAmount.value} (BigDecimal)")
+                Log.d(TAG, "   currency: PEN (String)")
+                Log.d(TAG, "   items: ${quoteItems.size} items")
+                quoteItems.forEachIndexed { index, item ->
+                    Log.d(TAG, "      [$index] requestItemId=${item.requestItemId}, qty=${item.qty}")
+                }
 
                 // Crear la cotización
                 val createQuoteRequest = CreateQuoteRequest(
@@ -157,6 +163,10 @@ class CreateQuoteViewModel @Inject constructor(
                     currency = "PEN",
                     items = quoteItems
                 )
+
+                Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+                Log.d(TAG, "📤 CreateQuoteRequest creado, llamando a repository...")
+                Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
                 val response = quotesRepository.createQuote(createQuoteRequest)
 

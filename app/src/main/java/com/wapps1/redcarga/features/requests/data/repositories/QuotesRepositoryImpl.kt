@@ -31,13 +31,36 @@ class QuotesRepositoryImpl @Inject constructor(
 
     override suspend fun createQuote(request: CreateQuoteRequest): CreateQuoteResponse = withContext(Dispatchers.IO) {
         try {
-            Log.d(TAG, "📝 Creando cotización para requestId=${request.requestId}")
-            Log.d(TAG, "   companyId: ${request.companyId}")
-            Log.d(TAG, "   totalAmount: ${request.totalAmount}")
-            Log.d(TAG, "   currency: ${request.currency}")
-            Log.d(TAG, "   items: ${request.items.size}")
+            Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+            Log.d(TAG, "📝 REPOSITORY: Creando cotización (Domain → DTO)")
+            Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+            Log.d(TAG, "📋 CreateQuoteRequest (Domain):")
+            Log.d(TAG, "   requestId: ${request.requestId} (Long)")
+            Log.d(TAG, "   companyId: ${request.companyId} (Long)")
+            Log.d(TAG, "   totalAmount: ${request.totalAmount} (BigDecimal)")
+            Log.d(TAG, "   currency: ${request.currency} (String)")
+            Log.d(TAG, "   items: ${request.items.size} items")
+            request.items.forEachIndexed { index, item ->
+                Log.d(TAG, "      [$index] requestItemId=${item.requestItemId} (Long), qty=${item.qty} (BigDecimal)")
+            }
 
             val dto = QuoteMappers.run { request.toDto() }
+            
+            Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+            Log.d(TAG, "📤 CreateQuoteRequestDto (DTO - SE ENVÍA AL BACKEND):")
+            Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+            Log.d(TAG, "   requestId: ${dto.requestId} (Int) ⭐ Convertido de Long")
+            Log.d(TAG, "   companyId: ${dto.companyId} (Int) ⭐ Convertido de Long")
+            Log.d(TAG, "   totalAmount: ${dto.totalAmount} (Double) ⭐ Convertido de BigDecimal")
+            Log.d(TAG, "   currency: ${dto.currency} (String)")
+            Log.d(TAG, "   items: ${dto.items.size} items")
+            dto.items.forEachIndexed { index, item ->
+                Log.d(TAG, "      [$index] requestItemId=${item.requestItemId} (Int) ⭐ Convertido de Long, qty=${item.qty} (Double) ⭐ Convertido de BigDecimal")
+            }
+            Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+            Log.d(TAG, "🌐 Enviando HTTP POST /api/deals/quotes...")
+            Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+            
             val response = quotesService.createQuote(dto)
 
             Log.d(TAG, "✅ Cotización creada exitosamente:")
@@ -234,6 +257,71 @@ class QuotesRepositoryImpl @Inject constructor(
             Log.e(TAG, "❌❌ ERROR al rechazar cotización para quoteId=$quoteId", e)
             Log.e(TAG, "   Tipo: ${e::class.simpleName}, Mensaje: ${e.message}")
             Result.failure(e)
+        }
+    }
+
+    override suspend fun getAcceptedQuotesByCompany(companyId: Long): Map<Long, String> = withContext(Dispatchers.IO) {
+        Log.d(TAG, "✅ getAcceptedQuotesByCompany(companyId=$companyId)")
+        try {
+            // Obtener quotes en estados TRATO, ACEPTADA, CERRADA
+            Log.d(TAG, "🌐 Obteniendo quotes en estado TRATO...")
+            val tratoQuotes = quotesService.getQuotesByCompany(companyId, "TRATO")
+            Log.d(TAG, "   ✅ TRATO: ${tratoQuotes.size} quotes")
+            
+            Log.d(TAG, "🌐 Obteniendo quotes en estado ACEPTADA...")
+            val aceptadaQuotes = quotesService.getQuotesByCompany(companyId, "ACEPTADA")
+            Log.d(TAG, "   ✅ ACEPTADA: ${aceptadaQuotes.size} quotes")
+            
+            Log.d(TAG, "🌐 Obteniendo quotes en estado CERRADA...")
+            val cerradaQuotes = quotesService.getQuotesByCompany(companyId, "CERRADA")
+            Log.d(TAG, "   ✅ CERRADA: ${cerradaQuotes.size} quotes")
+            
+            // Combinar todas las quotes
+            val allAcceptedQuotes = tratoQuotes + aceptadaQuotes + cerradaQuotes
+            Log.d(TAG, "📦 Total quotes aceptadas: ${allAcceptedQuotes.size}")
+            
+            // Obtener detalles de cada quote para obtener el stateCode
+            val requestIdToStateCode = mutableMapOf<Long, String>()
+            
+            allAcceptedQuotes.forEachIndexed { index, summary ->
+                try {
+                    Log.d(TAG, "🔍 [$index/${allAcceptedQuotes.size}] Obteniendo detalle de quoteId=${summary.quoteId}...")
+                    val detail = quotesService.getQuoteDetail(summary.quoteId)
+                    val stateCode = detail.stateCode
+                    val requestId = summary.requestId
+                    
+                    Log.d(TAG, "   ✅ QuoteId=${summary.quoteId}, RequestId=$requestId, StateCode=$stateCode")
+                    
+                    // Si ya existe una quote para este requestId, mantener la de mayor prioridad
+                    // Prioridad: TRATO > ACEPTADA > CERRADA
+                    if (!requestIdToStateCode.containsKey(requestId)) {
+                        requestIdToStateCode[requestId] = stateCode
+                    } else {
+                        val currentState = requestIdToStateCode[requestId]!!
+                        val priority = mapOf("TRATO" to 3, "ACEPTADA" to 2, "CERRADA" to 1)
+                        val currentPriority = priority[currentState] ?: 0
+                        val newPriority = priority[stateCode] ?: 0
+                        if (newPriority > currentPriority) {
+                            requestIdToStateCode[requestId] = stateCode
+                            Log.d(TAG, "   ⚠️ Actualizando estado de requestId=$requestId de $currentState a $stateCode")
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "   ❌ Error al obtener detalle de quoteId=${summary.quoteId}", e)
+                    // Continuar con las demás quotes aunque una falle
+                }
+            }
+            
+            Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+            Log.d(TAG, "✅✅ getAcceptedQuotesByCompany completado")
+            Log.d(TAG, "📋 RequestIds con quotes aceptadas: ${requestIdToStateCode.keys}")
+            Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+            
+            requestIdToStateCode
+        } catch (e: Exception) {
+            Log.e(TAG, "❌❌ ERROR al obtener quotes aceptadas", e)
+            Log.e(TAG, "   Tipo: ${e::class.simpleName}, Mensaje: ${e.message}")
+            emptyMap()
         }
     }
 }

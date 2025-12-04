@@ -51,12 +51,12 @@ class PlanningInboxRepositoryImpl @Inject constructor(
             Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
             dtos.forEachIndexed { index, dto ->
                 Log.d(TAG, "[$index] RequestID: ${dto.requestId}")
-                Log.d(TAG, "    ├─ Solicitante: ${dto.requesterName}")
+                Log.d(TAG, "    ├─ Solicitante: ${dto.requesterName ?: "N/A"}")
                 Log.d(TAG, "    ├─ Estado: ${dto.status}")
-                Log.d(TAG, "    ├─ Ruta: ${dto.originProvinceName} → ${dto.destProvinceName}")
-                Log.d(TAG, "    ├─ Items: ${dto.totalQuantity}")
-                Log.d(TAG, "    ├─ RouteId: ${dto.matchedRouteId}")
-                Log.d(TAG, "    └─ Fecha: ${dto.createdAt}")
+                Log.d(TAG, "    ├─ Ruta: ${dto.originProvinceName ?: "N/A"} → ${dto.destProvinceName ?: "N/A"}")
+                Log.d(TAG, "    ├─ Items: ${dto.totalQuantity ?: 0}")
+                Log.d(TAG, "    ├─ RouteId: ${dto.matchedRouteId ?: "null"}")
+                Log.d(TAG, "    └─ Fecha: ${dto.createdAt ?: "N/A"}")
                 Log.d(TAG, "")
             }
             Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")

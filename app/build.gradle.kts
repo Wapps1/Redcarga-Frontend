@@ -23,6 +23,8 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
+        multiDexEnabled = true
+        
         buildConfigField("String", "BACKEND_BASE_URL", "\"https://redcargabk-b4b7cng3ftb2bfea.canadacentral-01.azurewebsites.net/\"")
         buildConfigField("String", "FIREBASE_BASE_URL", "\"https://identitytoolkit.googleapis.com/\"")
         buildConfigField("String", "FIREBASE_API_KEY", "\"AIzaSyCg6E_E0KeZqtmTGccKVQg64surOnjhQ-M\"")
@@ -70,6 +72,9 @@ dependencies {
     // Image Loading
     implementation(libs.coil.compose)
     
+    // Pager for image viewer (included in Compose BOM)
+    implementation("androidx.compose.foundation:foundation")
+    
     implementation(libs.androidx.navigation.compose)
     
     implementation(libs.kotlinx.coroutines.core)
@@ -93,6 +98,9 @@ dependencies {
 
     // Security
     implementation(libs.security.crypto)
+    
+    // Multidex
+    implementation("androidx.multidex:multidex:2.0.1")
     
     // Core Library Desugaring
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")

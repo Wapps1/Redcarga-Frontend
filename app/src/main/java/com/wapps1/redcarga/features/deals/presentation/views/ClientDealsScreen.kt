@@ -32,6 +32,7 @@ import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -79,7 +80,7 @@ import java.util.*
 fun ClientDealsScreen(
     onBack: () -> Unit = {},
     onOpenChat: () -> Unit = {},
-    onOpenQuoteDetails: () -> Unit = {},
+    onOpenQuoteDetails: (quoteId: Long, requestId: Long) -> Unit = { _, _ -> },
     viewModel: ClientDealsViewModel = hiltViewModel()
 ) {
     val tabs = listOf(
@@ -181,7 +182,7 @@ fun ClientDealsScreen(
             val stateKey = currentState ?: "ALL"
             val quotesKey = "${solicitud.requestId}_$stateKey"
             val quotes = quotesByRequestId[quotesKey] ?: emptyList()
-            
+
             // Mapear QuoteDetail a CotizacionUi
             quotes.map { quote ->
                 CotizacionUi(
@@ -415,7 +416,6 @@ fun ClientDealsScreen(
 
                         Spacer(modifier = Modifier.height(12.dp))
 
-                        // Estados de la UI
                         when {
                             isLoadingQuotes -> {
                                 LoadingState()
@@ -445,7 +445,10 @@ fun ClientDealsScreen(
                                                         viewModel.rejectQuote(quoteId, requestId)
                                                     }
                                                 },
-                                                onDetalles = onOpenQuoteDetails,
+                                                onDetalles = {
+                                                    val reqId = selectedSolicitud?.requestId ?: 0L
+                                                    onOpenQuoteDetails(quote.quoteId, reqId)
+                                                },
                                                 onChat = onOpenChat
                                             )
                                         }
@@ -454,7 +457,6 @@ fun ClientDealsScreen(
                             }
                         }
                     } else if (solicitudes.isNotEmpty()) {
-                        // Mensaje para seleccionar una solicitud
                         OutlinedCard(
                             shape = RoundedCornerShape(18.dp)
                         ) {
@@ -481,7 +483,6 @@ fun ClientDealsScreen(
                 }
             }
 
-            // Header flotante encima
             CustomDealsHeader(
                 tabs = tabs,
                 selectedTabIndex = selectedTabIndex,
@@ -513,7 +514,6 @@ private fun CustomDealsHeader(
         Column(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Título más pequeño
             Text(
                 text = "Cotizaciones",
                 style = MaterialTheme.typography.titleMedium,
@@ -521,7 +521,6 @@ private fun CustomDealsHeader(
                 fontWeight = FontWeight.Bold
             )
 
-            // Tabs tipo pill más compactos
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.fillMaxWidth()
@@ -772,197 +771,214 @@ private fun CotizacionCard(
         shape = RoundedCornerShape(22.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
-        // Cinta superior con gradiente suave
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(6.dp)
-                .background(
-                    Brush.horizontalGradient(
-                        listOf(Color(0xFFFF8A65), Color(0xFFFF7043))
-                    ),
-                    RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp)
-                )
-        )
-
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                // Avatar de empresa
-                Box(
-                    modifier = Modifier
-                        .size(38.dp)
-                        .background(Color(0xFFFFEDE6), CircleShape),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(text = cotizacion.empresa.take(1), fontWeight = FontWeight.Bold, color = Color(0xFFFF6F4E))
-                }
-                Spacer(modifier = Modifier.size(10.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "${cotizacion.empresa} ${stringResource(R.string.client_deals_quote_made_by)}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
+        Column {
+            // Header con botón del ojo - ocupa 100% del ancho
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        Brush.horizontalGradient(
+                            listOf(Color(0xFFFF8A65), Color(0xFFFF7043))
+                        ),
+                        RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp)
                     )
-                    Text(
-                        text = stringResource(R.string.client_deals_quote_for, cotizacion.paraSolicitud),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
-                    )
-                }
-                // Chip elegante para mostrar el estado real
-                TagChip(
-                    text = when (cotizacion.stateCode.uppercase()) {
-                        "PENDING" -> "PENDIENTE"
-                        "TRATO" -> "EN TRATO"
-                        "RECHAZADA" -> "RECHAZADA"
-                        else -> "PENDIENTE"
-                    }
-                )
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                    .height(48.dp)
             ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(text = stringResource(R.string.client_deals_company_rating), style = MaterialTheme.typography.bodySmall)
-                    Spacer(modifier = Modifier.height(6.dp))
-                    RatingStars(rating = cotizacion.rating.coerceIn(0, 5))
-                }
-                Column(horizontalAlignment = Alignment.End) {
-                    Text(text = stringResource(R.string.client_deals_price_proposed), style = MaterialTheme.typography.bodySmall)
-                    Spacer(modifier = Modifier.height(2.dp))
-                    PricePill(text = "${cotizacion.currencyCode} ${cotizacion.precio}")
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(
+                        onClick = onDetalles,
+                        modifier = Modifier.size(40.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Visibility,
+                            contentDescription = "Ver detalles de la cotización",
+                            tint = Color.White,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
                 }
             }
 
-            Spacer(modifier = Modifier.height(14.dp))
-
-            // ⭐ Mostrar botones según el estado de la cotización
-            when (cotizacion.stateCode.uppercase()) {
-                "PENDING" -> {
-                    // Estado PENDING: Botones Denegar e Iniciar Trato
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        // Botón Denegar
-                        TextButton(
-                            onClick = { onReject(cotizacion.quoteId) },
-                            enabled = !isProcessing,
-                            modifier = Modifier
-                                .weight(1f)
-                                .border(1.dp, Color(0xFFE53935), RoundedCornerShape(12.dp))
-                        ) {
-                            if (isProcessing) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(16.dp),
-                                    color = Color(0xFFE53935),
-                                    strokeWidth = 2.dp
-                                )
-                            } else {
-                                Text(
-                                    text = "Denegar",
-                                    color = Color(0xFFE53935),
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                            }
-                        }
-                        
-                        // Botón Iniciar Trato
-                        GradientActionButton(
-                            text = if (isProcessing) "Procesando..." else "Iniciar Trato",
-                            onClick = { onStartNegotiation(cotizacion.quoteId) },
-                            modifier = Modifier.weight(1f),
-                            enabled = !isProcessing
-                        )
-                    }
-                }
-                "TRATO" -> {
-                    // Estado TRATO: Botones Denegar y Chat
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        // Botón Denegar
-                        TextButton(
-                            onClick = { onReject(cotizacion.quoteId) },
-                            enabled = !isProcessing,
-                            modifier = Modifier
-                                .weight(1f)
-                                .border(1.dp, Color(0xFFE53935), RoundedCornerShape(12.dp))
-                        ) {
-                            if (isProcessing) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(16.dp),
-                                    color = Color(0xFFE53935),
-                                    strokeWidth = 2.dp
-                                )
-                            } else {
-                                Text(
-                                    text = "Denegar",
-                                    color = Color(0xFFE53935),
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                            }
-                        }
-                        
-                        // Botón Chat
-                        GradientActionButton(
-                            text = "Chat",
-                            onClick = onChat,
-                            modifier = Modifier.weight(1f),
-                            enabled = !isProcessing
-                        )
-                    }
-                }
-                "RECHAZADA" -> {
-                    // Estado RECHAZADA: Solo texto, sin botones
+            // Contenido principal de la card
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    // Avatar de empresa
                     Box(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .background(Color(0xFFFFEBEE), RoundedCornerShape(12.dp))
-                            .padding(vertical = 12.dp),
+                            .size(38.dp)
+                            .background(Color(0xFFFFEDE6), CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
+                        Text(text = cotizacion.empresa.take(1), fontWeight = FontWeight.Bold, color = Color(0xFFFF6F4E))
+                    }
+                    Spacer(modifier = Modifier.size(10.dp))
+                    Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "HA SIDO RECHAZADO",
-                            color = Color(0xFFE53935),
-                            fontWeight = FontWeight.Bold,
-                            style = MaterialTheme.typography.bodyMedium
+                            text = "${cotizacion.empresa} ${stringResource(R.string.client_deals_quote_made_by)}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Text(
+                            text = stringResource(R.string.client_deals_quote_for, cotizacion.paraSolicitud),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
                         )
                     }
-                }
-                else -> {
-                    // Estado desconocido: Mostrar botones por defecto (PENDING)
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        TextButton(
-                            onClick = { onReject(cotizacion.quoteId) },
-                            enabled = !isProcessing,
-                            modifier = Modifier
-                                .weight(1f)
-                                .border(1.dp, Color(0xFFE53935), RoundedCornerShape(12.dp))
-                        ) {
-                            if (isProcessing) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(16.dp),
-                                    color = Color(0xFFE53935),
-                                    strokeWidth = 2.dp
-                                )
-                            } else {
-                                Text(
-                                    text = "Denegar",
-                                    color = Color(0xFFE53935),
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                            }
+                    // Chip elegante para mostrar el estado real
+                    TagChip(
+                        text = when (cotizacion.stateCode.uppercase()) {
+                            "PENDING" -> "PENDIENTE"
+                            "TRATO" -> "EN TRATO"
+                            "RECHAZADA" -> "RECHAZADA"
+                            else -> "PENDIENTE"
                         }
-                        
-                        GradientActionButton(
-                            text = if (isProcessing) "Procesando..." else "Iniciar Trato",
-                            onClick = { onStartNegotiation(cotizacion.quoteId) },
-                            modifier = Modifier.weight(1f),
-                            enabled = !isProcessing
-                        )
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(text = stringResource(R.string.client_deals_company_rating), style = MaterialTheme.typography.bodySmall)
+                        Spacer(modifier = Modifier.height(6.dp))
+                        RatingStars(rating = cotizacion.rating.coerceIn(0, 5))
+                    }
+                    Column(horizontalAlignment = Alignment.End) {
+                        Text(text = stringResource(R.string.client_deals_price_proposed), style = MaterialTheme.typography.bodySmall)
+                        Spacer(modifier = Modifier.height(2.dp))
+                        PricePill(text = "${cotizacion.currencyCode} ${cotizacion.precio}")
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                // ⭐ Mostrar botones según el estado de la cotización
+                when (cotizacion.stateCode.uppercase()) {
+                    "PENDING" -> {
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            TextButton(
+                                onClick = { onReject(cotizacion.quoteId) },
+                                enabled = !isProcessing,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .border(1.dp, Color(0xFFE53935), RoundedCornerShape(12.dp))
+                            ) {
+                                if (isProcessing) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(16.dp),
+                                        color = Color(0xFFE53935),
+                                        strokeWidth = 2.dp
+                                    )
+                                } else {
+                                    Text(
+                                        text = "Denegar",
+                                        color = Color(0xFFE53935),
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                }
+                            }
+                            GradientActionButton(
+                                text = if (isProcessing) "Procesando..." else "Iniciar Trato",
+                                onClick = { onStartNegotiation(cotizacion.quoteId) },
+                                modifier = Modifier.weight(1f),
+                                enabled = !isProcessing
+                            )
+                        }
+                    }
+                    "TRATO" -> {
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            TextButton(
+                                onClick = { onReject(cotizacion.quoteId) },
+                                enabled = !isProcessing,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .border(1.dp, Color(0xFFE53935), RoundedCornerShape(12.dp))
+                            ) {
+                                if (isProcessing) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(16.dp),
+                                        color = Color(0xFFE53935),
+                                        strokeWidth = 2.dp
+                                    )
+                                } else {
+                                    Text(
+                                        text = "Denegar",
+                                        color = Color(0xFFE53935),
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                }
+                            }
+                            GradientActionButton(
+                                text = "Chat",
+                                onClick = onChat,
+                                modifier = Modifier.weight(1f),
+                                enabled = !isProcessing
+                            )
+                        }
+                    }
+                    "RECHAZADA" -> {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(Color(0xFFFFEBEE), RoundedCornerShape(12.dp))
+                                .padding(vertical = 12.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "HA SIDO RECHAZADO",
+                                color = Color(0xFFE53935),
+                                fontWeight = FontWeight.Bold,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+                    }
+                    else -> {
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            TextButton(
+                                onClick = { onReject(cotizacion.quoteId) },
+                                enabled = !isProcessing,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .border(1.dp, Color(0xFFE53935), RoundedCornerShape(12.dp))
+                            ) {
+                                if (isProcessing) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(16.dp),
+                                        color = Color(0xFFE53935),
+                                        strokeWidth = 2.dp
+                                    )
+                                } else {
+                                    Text(
+                                        text = "Denegar",
+                                        color = Color(0xFFE53935),
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                }
+                            }
+
+                            GradientActionButton(
+                                text = if (isProcessing) "Procesando..." else "Iniciar Trato",
+                                onClick = { onStartNegotiation(cotizacion.quoteId) },
+                                modifier = Modifier.weight(1f),
+                                enabled = !isProcessing
+                            )
+                        }
                     }
                 }
             }
@@ -980,6 +996,7 @@ private fun TagChip(text: String) {
         Text(text = text, color = Color(0xFFFF6F4E), fontWeight = FontWeight.Medium)
     }
 }
+
 @Composable
 private fun PricePill(text: String) {
     Box(
@@ -995,7 +1012,7 @@ private fun PricePill(text: String) {
 }
 
 private data class SolicitudUi(
-    val requestId: Long, // ⭐ ID de la solicitud para futuras consultas
+    val requestId: Long,
     val titulo: String,
     val dia: String,
     val origen: String,

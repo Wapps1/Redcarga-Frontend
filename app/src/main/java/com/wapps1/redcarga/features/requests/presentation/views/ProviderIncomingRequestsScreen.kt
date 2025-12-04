@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -49,6 +50,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
@@ -68,6 +72,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -78,26 +83,33 @@ import androidx.hilt.navigation.compose.hiltViewModel
 fun ProviderIncomingRequestsScreen(
     onQuote: (Long) -> Unit = {}, // Para crear cotización (requestId)
     onViewQuote: (Long) -> Unit = {}, // ⭐ Para ver cotización existente (quoteId)
+    onChat: (Long) -> Unit = {}, // ⭐ Para ir al chat (quoteId)
     viewModel: com.wapps1.redcarga.features.requests.presentation.viewmodels.ProviderIncomingRequestsViewModel = hiltViewModel()
 ) {
     // Observar datos del ViewModel
     val requests by viewModel.incomingRequests.collectAsState()
     val quotedRequestIds by viewModel.quotedRequestIds.collectAsState() // ⭐ IDs de solicitudes cotizadas
+    val acceptedQuotesState by viewModel.acceptedQuotesState.collectAsState() // ⭐ Mapa requestId -> stateCode
     val uiState by viewModel.uiState.collectAsState()
     val detailState by viewModel.detailState.collectAsState()
     val newRequestNotification by viewModel.newRequestNotification.collectAsState()
     val lastNewRequestId by viewModel.lastNewRequestId.collectAsState()
+    val refreshErrorAfterNotification by viewModel.refreshErrorAfterNotification.collectAsState() // ⭐ Error de refresh después de WebSocket
 
-    val tabs = listOf("Todas", "Abiertas", "En Proceso")
+    val tabs = listOf("Todas", "Abiertas", "Cotizadas", "Cotizaciones aceptadas")
     var selectedTabIndex by remember { mutableStateOf(0) }
     var search by remember { mutableStateOf("") }
 
     // ⭐ Filtrar requests basado en tab y búsqueda (NUEVO FILTRADO CON COTIZACIONES)
-    val filteredRequests = remember(requests, quotedRequestIds, selectedTabIndex, search) {
+    val filteredRequests = remember(requests, quotedRequestIds, acceptedQuotesState, selectedTabIndex, search) {
+        val acceptedRequestIds = acceptedQuotesState.keys
         val filtered = when (selectedTabIndex) {
-            0 -> requests // Todas (cotizadas + no cotizadas)
+            0 -> requests // Todas (sin importar qué)
             1 -> requests.filter { it.requestId !in quotedRequestIds } // ⭐ Abiertas (NO cotizadas)
-            2 -> requests.filter { it.requestId in quotedRequestIds } // ⭐ En Proceso (YA cotizadas)
+            2 -> requests.filter { 
+                it.requestId in quotedRequestIds && it.requestId !in acceptedRequestIds 
+            } // ⭐ Cotizadas (YA cotizadas pero NO aceptadas)
+            3 -> requests.filter { it.requestId in acceptedRequestIds } // ⭐ Cotizaciones aceptadas (TRATO, ACEPTADA, CERRADA)
             else -> requests
         }
         filtered.filter {
@@ -109,12 +121,47 @@ fun ProviderIncomingRequestsScreen(
     val isLoading = uiState is com.wapps1.redcarga.features.requests.presentation.viewmodels.ProviderIncomingRequestsViewModel.UiState.Loading
     val hasError = uiState is com.wapps1.redcarga.features.requests.presentation.viewmodels.ProviderIncomingRequestsViewModel.UiState.Error
 
+    // ⭐ MEJORADO: Snackbar para mostrar errores de refresh después de notificación WebSocket
+    val snackbarHostState = remember { SnackbarHostState() }
+    
+    // ⭐ MEJORADO: Mostrar error de refresh después de notificación WebSocket
+    LaunchedEffect(refreshErrorAfterNotification) {
+        refreshErrorAfterNotification?.let { errorMsg ->
+            snackbarHostState.showSnackbar(
+                message = errorMsg,
+                duration = androidx.compose.material3.SnackbarDuration.Long
+            )
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text(text = "Solicitudes", style = MaterialTheme.typography.titleLarge) },
+                actions = {
+                    // ⭐ Botón de refresh elegante
+                    androidx.compose.material3.IconButton(
+                        onClick = { viewModel.refreshAllData() },
+                        modifier = Modifier.padding(end = 8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = "Refrescar",
+                            tint = Color(0xFFFF8A65)
+                        )
+                    }
+                },
                 scrollBehavior = rememberTopAppBarState().let { null }
             )
+        },
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState) { data ->
+                Snackbar(
+                    snackbarData = data,
+                    containerColor = Color(0xFFE53935), // Rojo para errores
+                    contentColor = Color.White
+                )
+            }
         }
     ) { paddingValues ->
         Box(modifier = Modifier.fillMaxSize()) {
@@ -128,9 +175,47 @@ fun ProviderIncomingRequestsScreen(
                     .padding(horizontal = 16.dp)
             ) {
                 Spacer(modifier = Modifier.height(4.dp))
-                TabRow(selectedTabIndex = selectedTabIndex) {
-                    tabs.forEachIndexed { index, label ->
-                        Tab(selected = selectedTabIndex == index, onClick = { selectedTabIndex = index }, text = { Text(label) })
+                
+                // ⭐ LazyRow para tabs que ocupan el 100% del espacio disponible
+                LazyRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(0.dp)
+                ) {
+                    items(tabs.size) { index ->
+                        val label = tabs[index]
+                        val isSelected = selectedTabIndex == index
+                        
+                        Box(
+                            modifier = Modifier
+                                .fillParentMaxWidth(1f / tabs.size)
+                                .height(48.dp)
+                                .clickable { selectedTabIndex = index }
+                                .background(
+                                    color = if (isSelected) Color(0xFFFF8A65) else Color.Transparent,
+                                    shape = when (index) {
+                                        0 -> RoundedCornerShape(topStart = 12.dp, bottomStart = 12.dp, topEnd = 0.dp, bottomEnd = 0.dp)
+                                        tabs.size - 1 -> RoundedCornerShape(topStart = 0.dp, bottomStart = 0.dp, topEnd = 12.dp, bottomEnd = 12.dp)
+                                        else -> RoundedCornerShape(0.dp)
+                                    }
+                                )
+                                .then(
+                                    if (!isSelected && index < tabs.size - 1) {
+                                        Modifier.border(1.dp, Color(0xFFE0E0E0).copy(alpha = 0.3f), RoundedCornerShape(0.dp))
+                                    } else Modifier
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = label,
+                                fontSize = 13.sp,
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                color = if (isSelected) Color.White else Color(0xFF6C757D),
+                                textAlign = TextAlign.Center,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.padding(horizontal = 8.dp)
+                            )
+                        }
                     }
                 }
 
@@ -150,6 +235,8 @@ fun ProviderIncomingRequestsScreen(
                                 items(filteredRequests) { req ->
                                     val isNew = req.requestId == lastNewRequestId // ⭐ Determinar si es nueva
                                     val isQuoted = req.requestId in quotedRequestIds // ⭐ Determinar si está cotizada
+                                    val isAccepted = req.requestId in acceptedQuotesState.keys // ⭐ Determinar si está aceptada
+                                    val quoteState = acceptedQuotesState[req.requestId] // ⭐ Estado de la cotización
                                     ProviderRequestCard(
                                         request = req,
                                         onQuote = {
@@ -164,8 +251,15 @@ fun ProviderIncomingRequestsScreen(
                                         },
                                         onViewDetails = { viewModel.loadRequestDetails(req.requestId) },
                                         onDelete = { viewModel.deleteRequest(req.requestId) },
+                                        onChat = {
+                                            // ⭐ Ir al chat solo si el estado es TRATO
+                                            val quoteId = viewModel.getQuoteIdForRequest(req.requestId)
+                                            quoteId?.let { onChat(it) }
+                                        },
                                         isNew = isNew, // ⭐ Pasar el estado de nueva
-                                        isQuoted = isQuoted // ⭐ Pasar el estado de cotizada
+                                        isQuoted = isQuoted, // ⭐ Pasar el estado de cotizada
+                                        isAccepted = isAccepted, // ⭐ Pasar el estado de aceptada
+                                        quoteState = quoteState // ⭐ Pasar el estado de la cotización
                                     )
                                 }
                             }
@@ -244,8 +338,11 @@ private fun ProviderRequestCard(
     onQuote: () -> Unit,
     onViewDetails: () -> Unit,
     onDelete: () -> Unit,
+    onChat: () -> Unit = {}, // ⭐ NUEVO: callback para ir al chat
     isNew: Boolean = false,
-    isQuoted: Boolean = false // ⭐ NUEVO: indica si ya se cotizó
+    isQuoted: Boolean = false, // ⭐ NUEVO: indica si ya se cotizó
+    isAccepted: Boolean = false, // ⭐ NUEVO: indica si está aceptada
+    quoteState: String? = null // ⭐ NUEVO: estado de la cotización (TRATO, ACEPTADA, CERRADA)
 ) {
     val dateFormatter = remember {
         java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault())
@@ -373,12 +470,15 @@ private fun ProviderRequestCard(
                             color = Color(0xFF2C3E50)
                         )
                         Spacer(modifier = Modifier.height(4.dp))
-                        Row(verticalAlignment = Alignment.CenterVertically) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             // Badge de estado
                             Box(
                                 modifier = Modifier
                                     .background(
                                         brush = when {
+                                            isAccepted -> Brush.horizontalGradient(
+                                                listOf(Color(0xFF2196F3), Color(0xFF42A5F5))
+                                            )
                                             isQuoted -> Brush.horizontalGradient(
                                                 listOf(Color(0xFF4CAF50), Color(0xFF66BB6A))
                                             )
@@ -395,6 +495,7 @@ private fun ProviderRequestCard(
                             ) {
                                 Text(
                                     text = when {
+                                        isAccepted -> "ACEPTADA ✓"
                                         isQuoted -> "COTIZADA ✓"
                                         isNew -> "NUEVA ⭐"
                                         else -> request.status.name
@@ -404,6 +505,31 @@ private fun ProviderRequestCard(
                                     color = Color.White,
                                     letterSpacing = 0.5.sp
                                 )
+                            }
+                            
+                            // ⭐ Badge de estado de cotización (solo si está aceptada)
+                            if (isAccepted && quoteState != null) {
+                                Box(
+                                    modifier = Modifier
+                                        .background(
+                                            color = when (quoteState) {
+                                                "TRATO" -> Color(0xFFFF9800)
+                                                "ACEPTADA" -> Color(0xFF4CAF50)
+                                                "CERRADA" -> Color(0xFF9E9E9E)
+                                                else -> Color(0xFF757575)
+                                            },
+                                            shape = RoundedCornerShape(12.dp)
+                                        )
+                                        .padding(horizontal = 12.dp, vertical = 6.dp)
+                                ) {
+                                    Text(
+                                        text = quoteState,
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        color = Color.White,
+                                        letterSpacing = 0.5.sp
+                                    )
+                                }
                             }
                         }
                     }
@@ -514,7 +640,52 @@ private fun ProviderRequestCard(
                     }
 
                     // Botón principal condicional
-                    if (isQuoted) {
+                    if (isAccepted && (quoteState == "TRATO" || quoteState == "ACEPTADA")) {
+                        // ⭐ Botón "Ir al Chat" - Si está aceptada y en estado TRATO o ACEPTADA
+                        Button(
+                            onClick = onChat,
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(50.dp),
+                            shape = RoundedCornerShape(14.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color.Transparent
+                            ),
+                            contentPadding = PaddingValues(0.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(
+                                        brush = Brush.horizontalGradient(
+                                            colors = listOf(
+                                                Color(0xFF2196F3),
+                                                Color(0xFF42A5F5)
+                                            )
+                                        ),
+                                        shape = RoundedCornerShape(14.dp)
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Center
+                                ) {
+                                    Text(
+                                        "💬",
+                                        fontSize = 18.sp
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(
+                                        "Ir al Chat",
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.White
+                                    )
+                                }
+                            }
+                        }
+                    } else if (isQuoted) {
                         // Botón "Ver Cotización" - Diseño verde premium
                         Button(
                             onClick = onQuote,

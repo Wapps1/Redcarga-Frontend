@@ -113,4 +113,21 @@ object RequestsDataModule {
     ): QuotesRepository {
         return QuotesRepositoryImpl(quotesService, quotesDao)
     }
+    
+    // ========== MEDIA ==========
+    
+    @Provides
+    @Singleton
+    fun provideMediaService(@Named("backend") retrofit: Retrofit): com.wapps1.redcarga.features.requests.data.remote.services.MediaService {
+        return retrofit.create(com.wapps1.redcarga.features.requests.data.remote.services.MediaService::class.java)
+    }
+    
+    @Provides
+    @Singleton
+    fun provideMediaRepository(
+        mediaService: com.wapps1.redcarga.features.requests.data.remote.services.MediaService,
+        @ApplicationContext context: Context
+    ): com.wapps1.redcarga.features.requests.domain.repositories.MediaRepository {
+        return com.wapps1.redcarga.features.requests.data.repositories.MediaRepositoryImpl(mediaService, context)
+    }
 }

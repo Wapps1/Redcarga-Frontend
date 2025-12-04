@@ -22,18 +22,27 @@ object QuoteMappers {
     // ========== CREATE QUOTE ==========
     
     fun CreateQuoteRequest.toDto(): CreateQuoteRequestDto {
+        android.util.Log.d("QuoteMappers", "🔄 MAPPER: Convirtiendo CreateQuoteRequest (Domain) → CreateQuoteRequestDto (DTO)")
+        android.util.Log.d("QuoteMappers", "   Conversiones:")
+        android.util.Log.d("QuoteMappers", "      requestId: $requestId (Long) → ${requestId.toInt()} (Int)")
+        android.util.Log.d("QuoteMappers", "      companyId: $companyId (Long) → ${companyId.toInt()} (Int)")
+        android.util.Log.d("QuoteMappers", "      totalAmount: $totalAmount (BigDecimal) → ${totalAmount.toDouble()} (Double)")
+        android.util.Log.d("QuoteMappers", "      currency: $currency (String) → $currency (String) ✅")
+        android.util.Log.d("QuoteMappers", "      items: ${items.size} items")
+        
         return CreateQuoteRequestDto(
-            requestId = requestId,
-            companyId = companyId,
+            requestId = requestId.toInt(), // ⭐ Convertir Long → Int para coincidir con backend (Integer)
+            companyId = companyId.toInt(), // ⭐ Convertir Long → Int para coincidir con backend (Integer)
             totalAmount = totalAmount.toDouble(),
-            currency = currency,
+            currency = currency, // ✅ Backend acepta "PEN" como String y lo convierte a Currency enum
             items = items.map { it.toDto() }
         )
     }
     
     fun QuoteItemRequest.toDto(): QuoteItemRequestDto {
+        android.util.Log.d("QuoteMappers", "   Item: requestItemId=${requestItemId} (Long) → ${requestItemId.toInt()} (Int), qty=${qty} (BigDecimal) → ${qty.toDouble()} (Double)")
         return QuoteItemRequestDto(
-            requestItemId = requestItemId,
+            requestItemId = requestItemId.toInt(), // ⭐ Convertir Long → Int para coincidir con backend (Integer)
             qty = qty.toDouble()
         )
     }
